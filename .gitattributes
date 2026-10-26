@@ -1,0 +1,14 @@
+# Default line endings for text files
+* text=auto eol=lf
+
+# Linux shell scripts
+*.sh text eol=lf
+
+# Windows command scripts
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary documents
+*.pdf binary
+*.docx binary
+*.pptx binary

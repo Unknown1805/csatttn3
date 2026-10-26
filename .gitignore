@@ -1,0 +1,35 @@
+# Local secrets
+.env
+.env.*
+!.env.example
+/secrets/
+
+# Python environments and cache
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Generated lab data, evidence and backups
+/artifacts/
+/backups/
+/runtime/
+*.pcap
+*.pcapng
+*.raw
+*.mem
+*.vmem
+*.dmp
+
+# Virtual machine disks and installation images
+*.vdi
+*.vmdk
+*.qcow2
+*.iso
+
+# Temporary editor and operating system files
+.idea/
+.DS_Store
+Thumbs.db
+~$*
