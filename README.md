@@ -46,6 +46,8 @@ có biểu hiện giống ransomware.
   commit, Pull Request, comment và review thực tế.
 - Không đưa mật khẩu, dữ liệu cá nhân hoặc chứng cứ thô lên repo.
 
+Xem [Hướng dẫn làm việc nhóm](CONTRIBUTING.md) để biết cách cài công cụ, nhận việc, commit và gửi Pull Request.
+
 ## Trạng thái hiện tại
 
 Đang chuẩn bị cấu trúc nền của repository.

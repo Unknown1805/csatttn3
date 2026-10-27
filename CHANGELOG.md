@@ -10,3 +10,5 @@ Chi tiết công việc và review được lưu trong Issue/Pull Request.
 - .gitattributes quy định kiểu xuống dòng cho các loại file.
 - .gitignore loại trừ cấu hình riêng và dữ liệu lab sinh ra.
 - Khung thư mục .github, docs, lab, scripts, src và tests.
+
+- Bổ sung CONTRIBUTING.md hướng dẫn cài công cụ và quy trình làm việc nhóm trên GitHub.
