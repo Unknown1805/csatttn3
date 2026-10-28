@@ -6,7 +6,9 @@
 
 **Hệ điều hành**: Linux.
 
-**Phương thức làm việc**: GitHub.
+**Username**: @Winolf
+
+**Phương thức làm việc**: GitHub Web.
 
 **Issue**: #4 Làm quen GitHub và tạo mẫu timeline.
 
