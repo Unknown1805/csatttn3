@@ -9,7 +9,8 @@
 
 ## 1. Môi trường và công cụ
 
-- Hệ điều hành: Linux (Kali Linux trên máy ảo)
+- Hệ điều hành máy ảo: Kali GNU/Linux Rolling (Phiên bản: 2025.4, Codename: `kali-rolling`, Kiến trúc: x86_64)
+- Phần mềm ảo hóa: VMware Workstation 17.6.4 build-24832109
 - Phiên bản Restic: `restic 0.19.1 compiled with go1.26.4 on linux/amd64`
 - Backend repository: Local backend (thư mục cục bộ `~/lab-restic/repo_backup`)
 
@@ -25,16 +26,80 @@
 
 ---
 
-## 3. Nhật ký thực thi lệnh và mốc thời gian
+## 3. Quy trình thực thi lệnh, tạo manifest và mốc thời gian
 
+### 3.1. Tạo dữ liệu mẫu và lập manifest gốc ban đầu
+- Thư mục làm việc: `~/lab-restic/data_source`
+- Lệnh tạo 15 file mẫu tự động:
+  ```bash
+  for i in $(seq -w 1 15); do
+    echo "Du lieu mau FILE_$i - CSATTT N3 - UTC: $(date -u)" > file_$i.txt
+  done
+  ```
+- Lệnh tính toán và lưu manifest gốc ban đầu:
+  ```bash
+  sha256sum file_*.txt > ../manifest/manifest_goc.txt
+  ```
+
+### 3.2. Khởi tạo kho và thực hiện sao lưu (Backup)
+- Thư mục làm việc: `~/lab-restic`
 - Khởi tạo kho: `restic init --repo ./repo_backup` (Thành công)
 - Thời gian bắt đầu sao lưu (UTC): `Wed Oct 28 08:49:30 AM UTC 2026`
-- Lệnh sao lưu: `restic -r ./repo_backup backup ./data_source`
+- Lệnh sao lưu:
+  ```bash
+  restic -r ./repo_backup backup ./data_source
+  ```
 - Thời gian kết thúc sao lưu (UTC): `Wed Oct 28 08:49:53 AM UTC 2026`
 - Snapshot ID tạo ra: `b4efe585`
-- Kiểm tra kho lưu trữ (`restic check --read-data`):
-  - Kết quả: `no errors were found` (Toàn bộ các khối dữ liệu trong kho nguyên vẹn 100%).
-- Lệnh khôi phục: `restic -r ./repo_backup restore b4efe585 --target ./data_restored` (Thành công)
+
+### 3.3. Kiểm tra tính toàn vẹn của kho (Repository Verification)
+- Thư mục làm việc: `~/lab-restic`
+- Cú pháp lệnh kiểm tra:
+  ```bash
+  restic -r ./repo_backup check --read-data
+  ```
+- Kết quả thực tế:
+  ```text
+  repository b4efe585 opened (version 2, compression level auto)
+  [0:00] 100.00%  3 / 3 index files loaded
+  check for trees, pack files, and indexes
+  [0:00] 100.00%  1 / 1 snapshots
+  read all data
+  [0:01] 100.00%  16 / 16 packs
+  no errors were found
+  ```
+
+### 3.4. Khôi phục dữ liệu (Restore)
+- Thư mục làm việc: `~/lab-restic`
+- Lệnh khôi phục sang thư mục đích:
+  ```bash
+  restic -r ./repo_backup restore b4efe585 --target ./data_restored
+  ```
+
+### 3.5. Đối chiếu tính toàn vẹn sau khôi phục
+- Thư mục làm việc: `~/lab-restic/data_restored/data_source`
+- Lệnh xác thực trực tiếp với manifest gốc:
+  ```bash
+  sha256sum -c ~/lab-restic/manifest/manifest_goc.txt
+  ```
+- Đầu ra thực tế xác nhận 15/15 file:
+  ```text
+  file_01.txt: OK
+  file_02.txt: OK
+  file_03.txt: OK
+  file_04.txt: OK
+  file_05.txt: OK
+  file_06.txt: OK
+  file_07.txt: OK
+  file_08.txt: OK
+  file_09.txt: OK
+  file_10.txt: OK
+  file_11.txt: OK
+  file_12.txt: OK
+  file_13.txt: OK
+  file_14.txt: OK
+  file_15.txt: OK
+  ```
 
 ---
 
@@ -66,5 +131,5 @@
 
 ## 5. Lỗi phát sinh, cách xử lý và kết luận
 
-- Vấn đề gặp phải: Khi chạy lệnh `restore`, Restic mặc định giữ nguyên cấu trúc thư mục nguồn bên dưới thư mục đích (cụ thể file nằm tại `./data_restored/data_source/file_*.txt`). Do đó, khi viết script tự động hóa đối chiếu mã băm cần lưu ý trỏ đúng đường dẫn thư mục con.
+- Vấn đề gặp phải: Khi chạy lệnh `restore`, Restic mặc định giữ nguyên cấu trúc thư mục nguồn bên dưới thư mục đích (cụ thể file nằm tại `./data_restored/data_source/file_*.txt`). Do đó, khi chạy lệnh `sha256sum -c` cần di chuyển vào đúng thư mục con `data_source` để đường dẫn đối chiếu tương ứng chính xác.
 - Kết luận: Kiểm chứng thành công. Quy trình tạo snapshot, kiểm tra tính toàn vẹn kho và khôi phục dữ liệu bằng Restic hoạt động ổn định, bảo toàn nguyên vẹn 100% dữ liệu gốc.
