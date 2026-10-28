@@ -35,10 +35,11 @@ Checklist này thực hiện sau khi sự cố diễn ra và phiên incident đ�
 
 1. [ ] Bảo toàn môi trường sự cố: Giữ nguyên trạng thái container và volume bị tác động để phục vụ điều tra pháp chứng số.
 2. [ ] Chuẩn bị môi trường sạch:
-   - Dựng một container/thư mục đích hoàn toàn mới từ cấu hình sạch đã duyệt.
+   - Sử dụng máy ảo (VM) sạch từ bản gốc (snapshot/template sạch) đã kiểm tra trước đó, bảo toàn nguyên vẹn phiên sự cố trước khi kết nối lại backup.
    - Rà soát tiến trình, volume và quyền hạn đảm bảo không còn mã độc/simulator sót lại.
 3. [ ] Gắn lại kho sao lưu:
-   - Kết nối lại ổ đĩa backup vào môi trường sạch (chế độ chỉ đọc/an toàn).
+   - Kết nối lại ổ đĩa backup vào môi trường sạch. Quyền mount và cách xử lý cơ chế lock của Restic tuân thủ đúng runbook được duyệt.
+   - Chỉ sử dụng tùy chọn --no-lock khi đã bảo đảm chắc chắn không có tiến trình ghi hoặc tác vụ bảo trì repository đồng thời.
    - Kiểm tra tính toàn vẹn dữ liệu kho: restic -r <repo_path> check --read-data.
 4. [ ] Chọn và thực hiện khôi phục (Restore):
    - Liệt kê các snapshot: restic -r <repo_path> snapshots.
@@ -59,6 +60,7 @@ Checklist này thực hiện sau khi sự cố diễn ra và phiên incident đ�
 | --- | --- | --- |
 | Run ID | Chờ thực nghiệm | Mã phiên chạy thực tế |
 | Snapshot ID sử dụng | Chờ thực nghiệm | Mã snapshot được chọn từ Restic |
+| Thử restore bộ dữ liệu nhỏ trước sự cố | Chưa thực hiện | Kiểm tra khả thi trước phiên chính |
 | Thời điểm mất khả dụng (t_loss) | Chờ thực nghiệm | Lúc kiểm tra dữ liệu đầu tiên thất bại |
 | Thời điểm phát hiện sự cố (t_detect) | Chờ thực nghiệm | Ghi nhận thời gian phát hiện |
 | Thời điểm khôi phục đạt yêu cầu (t_restore_validated) | Chờ thực nghiệm | Lúc đối chiếu SHA-256 và đọc dữ liệu PASS |
