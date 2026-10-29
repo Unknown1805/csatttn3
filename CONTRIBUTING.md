@@ -13,9 +13,9 @@ Nhữ Duy Anh Minh (`Unknown1805`) phụ trách kỹ thuật chính, giao Issue 
 | Trần Bảo Minh | Log/PCAP, timeline có nguồn chứng cứ và kiểm tra cô lập theo runbook |
 | Nguyễn Gia Khánh | Tự kiểm tra SHA-256 trên bản sao, manifest, bàn giao và minh chứng GitHub |
 
-Mỗi công việc: Issue → nhánh feature từ develop → commit và comment → PR vào develop → người khác review → sửa góp ý → Minh merge và nghiệm thu. Không push trực tiếp vào main hoặc develop theo quy định của nhóm. PR do Minh viết cần Phong hoặc thành viên khác review trong phạm vi hiểu được.
+Mỗi công việc: Issue → nhánh riêng từ develop → commit và comment → PR vào develop. PR của thành viên được Minh kiểm tra và merge. Với PR do Minh thực hiện, Minh tự kiểm tra thay đổi và bằng chứng trước khi merge; không bắt buộc Phong review. Không push trực tiếp vào main hoặc develop theo quy định của nhóm.
 
-Luồng khuyến nghị: Phong/Bảo Minh dùng Git và VS Code; Khánh bắt đầu bằng GitHub web. Các bạn mới chỉ nhận việc nhỏ trước; lab dùng dữ liệu giả, simulator chỉ đổi tên file và tạo thông báo, không mã hóa hoặc tự lây lan.
+Luồng khuyến nghị: Phong/Bảo Minh dùng Git và VS Code; Khánh bắt đầu bằng GitHub web. Các bạn mới chỉ nhận việc nhỏ trước. Phạm vi demo có kiểm soát và nghiên cứu mẫu thật dự kiến được ghi tại mục Phạm vi trong README. Hiện chưa có simulator hoặc lượt chạy mẫu thật; thành viên chỉ thực hiện nhiệm vụ được giao và runbook đã được Minh chốt, không tự tải hoặc chạy mẫu mã độc.
 
 ## 2 Tài khoản GitHub, lời mời và quyền cộng tác
 
@@ -205,7 +205,7 @@ git push -u origin feature/7-danh-muc-chung-cu
 
 Mở GitHub → Pull requests → New pull request. Chọn **base: develop**, **compare: nhánh feature của mình**; xem Files changed trước khi tạo. Ghi “Liên quan #7”, nội dung đã làm, kiểm tra thật sự thực hiện và phần còn thiếu; mời `Unknown1805` review. Dán PR vào Issue và comment sau mỗi đợt thay đổi. [Tạo PR](https://docs.github.com/en/pull-requests/how-tos/create-pull-requests/creating-a-pull-request)
 
-Sau góp ý, sửa cùng nhánh, add đúng file, commit mới và push; PR tự cập nhật. Minh đọc Files changed, comment hoặc Request changes, Approve khi đạt rồi merge. PR do Minh viết được Phong review trong phạm vi hiểu được; cần thêm người kiểm tra khi vượt khả năng. Tác giả không tự Approve PR của mình. [Duyệt PR](https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/approving-a-pull-request-with-required-reviews)
+Sau góp ý, sửa cùng nhánh, add đúng file, commit mới và push; PR tự cập nhật. Minh đọc Files changed, comment hoặc Request changes, Approve khi đạt rồi merge. Với PR do Minh thực hiện, Minh tự kiểm tra Files changed và kết quả kiểm thử trước khi merge; có thể nhờ thành viên khác kiểm tra khi cần. Tác giả không tự Approve PR của mình; tự merge khác với tự Approve. [Duyệt PR](https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/approving-a-pull-request-with-required-reviews)
 
 Với `main` là default branch, PR vào `develop` không tự đóng Issue bằng `Closes #7`. Minh nghiệm thu, dẫn PR đã merge và đóng thủ công. [Điều kiện đóng Issue](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue)
 
@@ -275,7 +275,7 @@ Liên quan #[số Issue thật]
 Thay đổi: [nội dung và lý do]
 Kiểm tra đã thực hiện: [cách kiểm tra và kết quả]
 Phần chưa hoàn thành: [nếu có]
-Đề nghị review: [username người khác]
+Đề nghị review: [username, nếu cần; PR của thành viên gửi Minh kiểm tra]
 ```
 
 Reviewer đọc Files changed, đối chiếu Issue và bằng chứng, hỏi lại chỗ thiếu. Chỉ Approve phần đã hiểu và kiểm tra; việc merge do Minh thực hiện sau nghiệm thu. Các hạn làm việc, độ khó và lịch thực nghiệm được ghi ở Issue, milestone và Project theo kế hoạch nhóm.

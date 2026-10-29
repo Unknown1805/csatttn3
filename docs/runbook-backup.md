@@ -1,6 +1,6 @@
 # Runbook backup và restore — giai đoạn 2
 
-Liên quan Issue #6. Bản nguồn được chuẩn bị để review; chưa chạy dịch vụ backup trong VM.
+Liên quan Issue #6. Đã triển khai và kiểm thử backup/restore cơ bản trong VM Ubuntu bằng QEMU/KVM. Backup-server hiện đã dừng và ổ backup đã tháo khỏi VM. Chưa nghiệm thu chế độ cô lập và khôi phục trong môi trường sạch cho phiên sự cố.
 
 ## Mô hình và quyền
 
@@ -9,6 +9,7 @@ Liên quan Issue #6. Bản nguồn được chuẩn bị để review; chưa ch�
 - Chỉ server gắn thư mục repository trên đĩa backup. Worker sao lưu chỉ đọc /source; worker phục hồi chỉ ghi /restore.
 - Các dịch vụ chạy UID/GID 1000, root filesystem chỉ đọc, bỏ capabilities và không công bố cổng.
 - Client dùng restic/restic:0.19.1; server dùng restic/rest-server:0.14.0. Kênh REST HTTP có xác thực nằm trong mạng backup riêng của VM.
+- Giới hạn hiện tại: đường REST chưa có TLS. Restic mã hóa nội dung backup phía client, nhưng credential HTTP Basic không được bảo vệ bởi TLS. Cần nâng cấp và kiểm chứng HTTPS trước khi sử dụng đường backup trong mô hình thực nghiệm mở rộng.
 - Kho bên trong container là /data/csattt, tương ứng /mnt/csattt-backup/repository/csattt trên VM.
 - Hai mật khẩu riêng: khóa repository và mật khẩu HTTP. Server chỉ nhận bản bcrypt htpasswd. Các file thật nằm ngoài Git, owner 1000, file 0600, thư mục 0700.
 - Wrapper nạp mật khẩu HTTP từ secret khi worker chạy; URL và cấu hình Compose không chứa giá trị mật khẩu.
@@ -31,7 +32,7 @@ Stage 1 đã kiểm tra HTTP 15/15, hash 15/15, UID/GID 1000, rootfs chỉ đọ
 
 Đĩa backup vdb đã được kiểm tra: ext4, UUID 72fd2516-3134-4ff1-abcd-50369a6db1b9, RW, thư mục repository owner csattt3 và mode 0750.
 
-Tài liệu kiến trúc cũ còn ghi VirtualBox/chưa thử RAM; cần cập nhật toàn bộ trạng thái nghiệm thu sau khi phase backup chạy thành công.
+Kết quả kiểm thử nền: backup 15 file, tổng 600 B; kiểm tra kho không phát hiện lỗi; restore khớp 15/15 SHA-256 và dữ liệu nguồn giữ nguyên. Thời gian bước restore là 3.649 giây, chưa phải RTO của sự cố.
 
 ## 1. Chuẩn bị nguồn
 

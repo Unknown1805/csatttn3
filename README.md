@@ -11,11 +11,12 @@ có biểu hiện giống ransomware.
 ## Phạm vi
 
 - Chỉ sử dụng dữ liệu giả phục vụ học tập.
-- Simulator chỉ đổi tên file mẫu và tạo thông báo mô phỏng.
-- Không sử dụng ransomware thật, không mã hóa dữ liệu,
-  không triển khai chức năng tự lây lan.
-- Dự kiến chạy Docker bên trong máy ảo Linux được cô lập.
-- Mã nguồn được soạn bằng VS Code trên ổ dùng chung Windows/Linux.
+- Nền lab đã triển khai bằng Docker trong VM Ubuntu trên QEMU/KVM; chế độ cô lập cho phiên sự cố còn phải nghiệm thu.
+- Demo trực tiếp trên máy chính dự kiến dùng simulator có phạm vi kiểm soát trên tập file giả đã duyệt: đổi tên file, tạo thông báo hoặc kiểm thử mã hóa. Simulator chưa được triển khai; phải ghi rõ đây là mô phỏng.
+- Linux.Encoder.1 là case nghiên cứu dự kiến trên máy phụ. Chưa xác minh file mẫu cụ thể hoặc SHA-256, chưa thực thi mẫu thật.
+- Chỉ thực nghiệm mẫu thật sau khi đã định danh mẫu, kiểm chứng cô lập, chuẩn bị giám sát, diễn tập nút dừng và thử phục hồi từ bản sao lưu độc lập. Không mang mẫu thật hoặc VM đã nhiễm sang máy chính để chạy demo.
+- Không phát triển chức năng tự lây lan hoặc đánh cắp dữ liệu; không tác động dữ liệu cá nhân.
+- Mã nguồn được soạn bằng VS Code trên ổ dùng chung Windows/Linux; chuyển bản nguồn xác định vào VM, không chia sẻ trực tiếp thư mục code với môi trường sự cố.
 
 ## Kết quả cần đạt
 
@@ -41,7 +42,8 @@ có biểu hiện giống ransomware.
 - Mỗi đợt thay đổi cần commit mô tả rõ nội dung và comment
   trong Issue hoặc Pull Request liên quan.
 - Comment ghi: đã làm gì, kiểm tra thế nào, còn vướng gì.
-- Pull Request cần ít nhất một thành viên khác review trước khi merge.
+- PR của thành viên được Nhữ Duy Anh Minh kiểm tra và merge.
+- Với PR do Minh thực hiện, Minh tự kiểm tra thay đổi và bằng chứng trước khi merge; không bắt buộc Phong hoặc thành viên khác review.
 - Báo cáo tổng kết quá trình làm nhóm bằng liên kết Issue,
   commit, Pull Request, comment và review thực tế.
 - Không đưa mật khẩu, dữ liệu cá nhân hoặc chứng cứ thô lên repo.
@@ -50,6 +52,14 @@ Xem [Hướng dẫn làm việc nhóm](CONTRIBUTING.md) để biết cách cài 
 
 ## Trạng thái hiện tại
 
-Đang chuẩn bị cấu trúc nền của repository.
-Lab chưa được triển khai; các kết quả phía trên là mục tiêu
-cần thực hiện và kiểm chứng.
+- Đã triển khai nền lab bằng QEMU/KVM, Ubuntu 24.04.5 và Docker.
+- Workstation phục vụ đúng 15 file dữ liệu giả qua HTTP.
+- Đã thử thu RAM và phân tích tiến trình kiểm chứng bằng Volatility.
+- Đã backup 15 file, tổng 600 B; kiểm tra kho không phát hiện lỗi.
+- Restore khớp 15/15 SHA-256; dữ liệu nguồn giữ nguyên.
+- Sau kiểm thử, backup-server đã dừng và ổ backup đã tháo khỏi VM.
+- Chưa triển khai giám sát phát hiện, simulator và lượt sự cố.
+- Chưa nghiệm thu cô lập cho phiên sự cố, HTTPS cho backup,
+  khôi phục môi trường sạch và RTO/RPO.
+
+Xem [Biên bản nghiệm thu nền lab](docs/kiem-thu/nghiem-thu-nen-lab.md).

@@ -1,13 +1,15 @@
 # Kiến trúc lab — Pháp chứng số và ứng cứu sự cố ransomware
 
 Liên quan: Issue #6.
-Trạng thái: Thiết kế dự kiến; chưa triển khai và chưa xác minh mức độ cô lập.
+Trạng thái: Đã triển khai nền lab bằng QEMU/KVM và Docker; đã kiểm thử backup/restore. Phần giám sát phát hiện và chế độ cô lập cho phiên sự cố chưa được nghiệm thu.
 
 ## 1. Mục tiêu
 
 Xây dựng môi trường mô phỏng sự cố ransomware để thực hành phát hiện, cô lập, thu chứng cứ, phân tích diễn biến và khôi phục dữ liệu từ bản sao lưu.
 
-Simulator chỉ đổi tên file và tạo thông báo trên dữ liệu giả. Nội dung file mẫu phải được giữ nguyên; không mã hóa thật, tự lan hoặc sử dụng dữ liệu cá nhân.
+Tài liệu này mô tả nền Docker và luồng demo có kiểm soát. Simulator dự kiến chỉ tác động danh sách file giả đã duyệt bằng cách đổi tên, tạo thông báo hoặc kiểm thử mã hóa; hiện chưa triển khai simulator. Giữ manifest và bản sao lưu sạch trước thử nghiệm. Không phát triển tự lây lan, đánh cắp dữ liệu hoặc tác động dữ liệu cá nhân.
+
+Linux.Encoder.1 là case nghiên cứu mẫu thật dự kiến trên máy phụ, cần thiết kế lab và runbook riêng trước thực nghiệm. Chưa xác minh file mẫu hoặc SHA-256 và chưa thực thi mẫu thật. Nhánh nghiên cứu này phải kiểm chứng cô lập, giám sát, nút dừng và khả năng phục hồi; không mang mẫu thật hoặc VM đã nhiễm sang máy chính để chạy demo. Phạm vi chung được ghi trong README.
 
 ## 2. Mô hình tổng thể
 
@@ -27,7 +29,7 @@ Các thành phần chạy theo từng giai đoạn; không khởi động tất 
 | Thành phần | Nhiệm vụ | Mạng |
 |---|---|---|
 | workstation | Tạo, sử dụng dữ liệu giả và cung cấp phép kiểm tra khả dụng | incident_net |
-| simulator | Đổi tên file mẫu và tạo thông báo mô phỏng | incident_net |
+| simulator (chưa triển khai) | Thực hiện kịch bản mô phỏng đã duyệt trên dữ liệu giả | incident_net |
 | backup-worker | Đọc dữ liệu nguồn để sao lưu bằng Restic | backup_net |
 | backup-server | Cung cấp REST backend và lưu repository sao lưu | backup_net |
 | restore-worker | Khôi phục bản sao lưu vào volume mới trong môi trường sạch | backup_net |
@@ -107,12 +109,14 @@ Nếu simulator không phát sinh lưu lượng mạng, PCAP ít hoặc không c
 
 Kiểm tra cú pháp Compose thành công chỉ xác nhận cấu hình được công cụ chấp nhận; chưa chứng minh hệ thống chạy đúng hoặc cô lập đúng.
 
-## 8. Các lựa chọn còn cần xác nhận
+## 8. Trạng thái triển khai và các mục còn phải kiểm chứng
 
-- Đã chọn VirtualBox; dự kiến lưu VM trên ổ D. Khả năng xuất và phân tích RAM còn phải kiểm thử.
-- Bản Linux, kernel và symbol table tương ứng.
-- Dung lượng ổ đĩa còn trống và kích thước các đĩa ảo.
-- Image, phiên bản công cụ và cách ánh xạ volume thực tế.
-- Phương pháp thu RAM/ảnh đĩa đã thử thành công.
+- VM chính sử dụng QEMU/KVM qua libvirt, tên CSATTT-QEMU.
+- Ubuntu 24.04.5 LTS; 6 vCPU, khoảng 8 GiB RAM.
+- Đĩa hệ điều hành vda dung lượng 50 GiB; root LV khoảng 48 GiB.
+- Đã thử thu RAM và phân tích được tiến trình kiểm chứng bằng Volatility.
+- Đã backup 15 file, tổng 600 B; kiểm tra kho thành công; restore khớp 15/15 SHA-256.
+- Backup-server đã dừng; đĩa backup đã tháo khỏi cấu hình VM đang chạy và lần khởi động sau.
+- Còn phải triển khai giám sát phát hiện, kiểm chứng cô lập và thực hiện lượt sự cố.
 
-Các mục này phải được cập nhật bằng kết quả thực tế trước khi chạy kịch bản đầy đủ.
+Trước lượt sự cố, phải nghiệm thu phần giám sát, cô lập, thu ảnh đĩa và khôi phục trong môi trường sạch.
