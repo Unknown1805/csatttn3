@@ -23,9 +23,9 @@
 ## 2. Thông tin gói bàn giao (Lưu trữ ngoài Git)
 
 - Tên file gói nén: `p2b_restic_tuanphong.tar.gz`
-- SHA-256 của gói bàn giao: `[Điền chuỗi SHA-256 bạn vừa tính ở Bước 2]`
-- Kênh bàn giao: Kênh trao đổi nội bộ nhóm (Google Drive / Discord / Zalo)
-- Thời điểm gửi bàn giao (UTC): `2026-10-28 17:30:00 UTC` (hoặc giờ thực tế lúc bạn gửi)
+- SHA-256 của gói bàn giao: `74a4a535fd75e6e4ecec6bab18302e6d853a39acf50e3b91d15b2fd808da717a`
+- Kênh bàn giao: Kênh trao đổi nội bộ nhóm trên Messenger.
+- Thời điểm gửi bàn giao (UTC+7): `2026-10-28 16:46:23 UTC+7`
 - Trạng thái xác nhận: Đã gửi file thành công; đang chờ Khánh và Bảo Minh xác nhận đọc được dữ liệu.
 
 ---
