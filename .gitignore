@@ -2,6 +2,7 @@
 .env
 .env.*
 !.env.example
+!/lab/.env.backup.example
 /secrets/
 
 # Python environments and cache

@@ -1,0 +1,112 @@
+x-restic-client: &restic-client
+  image: restic/restic:0.19.1
+  user: "1000:1000"
+  init: true
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  restart: "no"
+  cpus: 1.0
+  mem_limit: 512m
+  pids_limit: 128
+  entrypoint: ["/bin/sh", "/opt/lab/restic-worker.sh"]
+  command: ["snapshots"]
+  environment:
+    RESTIC_REPOSITORY: rest:http://backup-server:8000/csattt/
+    RESTIC_PASSWORD_FILE: /run/secrets/repository_password
+    RESTIC_REST_USERNAME: csattt
+    RESTIC_CACHE_DIR: /tmp/restic-cache
+    GOMAXPROCS: "2"
+  tmpfs:
+    - /tmp:rw,noexec,nosuid,size=128m,mode=1777
+  networks: [backup_net]
+  secrets: [repository_password, rest_http_password]
+  logging:
+    driver: json-file
+    options:
+      max-size: "5m"
+      max-file: "3"
+
+services:
+  backup-server:
+    image: restic/rest-server:0.14.0
+    user: "1000:1000"
+    init: true
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    restart: "no"
+    cpus: 1.0
+    mem_limit: 256m
+    pids_limit: 64
+    command:
+      - /usr/bin/rest-server
+      - --path
+      - /data
+      - --listen
+      - :8000
+      - --htpasswd-file
+      - /run/secrets/rest_htpasswd
+      - --private-repos
+      - --log
+      - "-"
+    labels:
+      org.csattt.backup.mount: "${LAB_BACKUP_MOUNT:?Set LAB_BACKUP_MOUNT}"
+      org.csattt.backup.uuid: "${LAB_BACKUP_UUID:?Set LAB_BACKUP_UUID}"
+    volumes:
+      - type: bind
+        source: "${LAB_BACKUP_REPO_DIR:?Set LAB_BACKUP_REPO_DIR}"
+        target: /data
+        bind:
+          create_host_path: false
+    networks: [backup_net]
+    secrets: [rest_htpasswd]
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  backup-worker:
+    <<: *restic-client
+    working_dir: /source
+    volumes:
+      - type: bind
+        source: "${LAB_DATA_DIR:?Set LAB_DATA_DIR}"
+        target: /source
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ../scripts/restic-worker.sh
+        target: /opt/lab/restic-worker.sh
+        read_only: true
+        bind:
+          create_host_path: false
+
+  restore-worker:
+    <<: *restic-client
+    volumes:
+      - type: bind
+        source: "${LAB_RESTORE_DIR:?Set LAB_RESTORE_DIR}"
+        target: /restore
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ../scripts/restic-worker.sh
+        target: /opt/lab/restic-worker.sh
+        read_only: true
+        bind:
+          create_host_path: false
+
+networks:
+  backup_net:
+    internal: true
+
+secrets:
+  rest_htpasswd:
+    file: "${LAB_SECRET_DIR:?Set LAB_SECRET_DIR}/rest.htpasswd"
+  repository_password:
+    file: "${LAB_SECRET_DIR:?Set LAB_SECRET_DIR}/repository-password"
+  rest_http_password:
+    file: "${LAB_SECRET_DIR:?Set LAB_SECRET_DIR}/rest-http-password"

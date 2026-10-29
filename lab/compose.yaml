@@ -1,0 +1,47 @@
+name: csatttn3
+
+services:
+  workstation:
+    image: csatttn3/workstation:stage1
+    build:
+      context: ../src/workstation
+    user: "1000:1000"
+    init: true
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    restart: "no"
+    cpus: 1.0
+    mem_limit: 256m
+    pids_limit: 64
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m,mode=1777
+    volumes:
+      - type: bind
+        source: "${LAB_DATA_DIR:?Set LAB_DATA_DIR in the environment file}"
+        target: /lab/data
+        bind:
+          create_host_path: false
+    networks:
+      - incident_net
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/', timeout=2).close()"
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+networks:
+  incident_net:
+    internal: true
