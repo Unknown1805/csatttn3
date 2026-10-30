@@ -1,6 +1,8 @@
 # Runbook backup và restore — giai đoạn 2
 
-Liên quan Issue #6. Đã triển khai và kiểm thử backup/restore cơ bản trong VM Ubuntu bằng QEMU/KVM. Backup-server hiện đã dừng và ổ backup đã tháo khỏi VM. Chưa nghiệm thu chế độ cô lập và khôi phục trong môi trường sạch cho phiên sự cố.
+Liên quan Issue #6. Đã triển khai và kiểm thử backup/restore cơ bản trong VM Ubuntu bằng QEMU/KVM. Ở cuối lượt HTTP giai đoạn 2, backup-server đã dừng và ổ backup đã tháo khỏi VM; đĩa đã được gắn lại khi kiểm thử HTTPS giai đoạn 3. Chưa nghiệm thu chế độ cô lập và khôi phục trong môi trường sạch cho phiên sự cố.
+
+> HTTPS đã nghiệm thu ngày 30/10/2026; xem [biên bản](kiem-thu/https-backup-p3.md) và [runbook HTTPS](runbook-https-backup.md). Các kết quả HTTP bên dưới là lịch sử giai đoạn 2; không chạy lại init hoặc tạo lại secret khi nâng cấp.
 
 ## Mô hình và quyền
 
@@ -9,7 +11,7 @@ Liên quan Issue #6. Đã triển khai và kiểm thử backup/restore cơ bản
 - Chỉ server gắn thư mục repository trên đĩa backup. Worker sao lưu chỉ đọc /source; worker phục hồi chỉ ghi /restore.
 - Các dịch vụ chạy UID/GID 1000, root filesystem chỉ đọc, bỏ capabilities và không công bố cổng.
 - Client dùng restic/restic:0.19.1; server dùng restic/rest-server:0.14.0. Kênh REST HTTP có xác thực nằm trong mạng backup riêng của VM.
-- Giới hạn hiện tại: đường REST chưa có TLS. Restic mã hóa nội dung backup phía client, nhưng credential HTTP Basic không được bảo vệ bởi TLS. Cần nâng cấp và kiểm chứng HTTPS trước khi sử dụng đường backup trong mô hình thực nghiệm mở rộng.
+- Giới hạn của lượt HTTP lịch sử: credential HTTP Basic chưa được bảo vệ bởi TLS. Lượt HTTPS giai đoạn 3 đã bổ sung TLS 1.3 và được kiểm chứng riêng; không sử dụng cấu hình HTTP lịch sử để vận hành lượt hiện tại.
 - Kho bên trong container là /data/csattt, tương ứng /mnt/csattt-backup/repository/csattt trên VM.
 - Hai mật khẩu riêng: khóa repository và mật khẩu HTTP. Server chỉ nhận bản bcrypt htpasswd. Các file thật nằm ngoài Git, owner 1000, file 0600, thư mục 0700.
 - Wrapper nạp mật khẩu HTTP từ secret khi worker chạy; URL và cấu hình Compose không chứa giá trị mật khẩu.

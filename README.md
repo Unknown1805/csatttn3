@@ -57,9 +57,11 @@ Xem [Hướng dẫn làm việc nhóm](CONTRIBUTING.md) để biết cách cài 
 - Đã thử thu RAM và phân tích tiến trình kiểm chứng bằng Volatility.
 - Đã backup 15 file, tổng 600 B; kiểm tra kho không phát hiện lỗi.
 - Restore khớp 15/15 SHA-256; dữ liệu nguồn giữ nguyên.
-- Sau kiểm thử, backup-server đã dừng và ổ backup đã tháo khỏi VM.
+- Đã nghiệm thu backup/restore qua HTTPS/TLS 1.3 ngày 30/10/2026; CA sai và tên sai bị từ chối.
+- Lượt HTTPS vừa hoàn tất; cần dừng backup-server, unmount và tháo lại ổ backup trước phiên sự cố.
 - Chưa triển khai giám sát phát hiện, simulator và lượt sự cố.
-- Chưa nghiệm thu cô lập cho phiên sự cố, HTTPS cho backup,
-  khôi phục môi trường sạch và RTO/RPO.
+- Chưa nghiệm thu cô lập cho phiên sự cố, khôi phục môi trường sạch và RTO/RPO.
 
 Xem [Biên bản nghiệm thu nền lab](docs/kiem-thu/nghiem-thu-nen-lab.md).
+
+Xem [Runbook HTTPS](docs/runbook-https-backup.md) và [Biên bản nghiệm thu HTTPS](docs/kiem-thu/https-backup-p3.md).

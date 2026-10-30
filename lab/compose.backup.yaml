@@ -12,7 +12,8 @@ x-restic-client: &restic-client
   entrypoint: ["/bin/sh", "/opt/lab/restic-worker.sh"]
   command: ["snapshots"]
   environment:
-    RESTIC_REPOSITORY: rest:http://backup-server:8000/csattt/
+    RESTIC_REPOSITORY: rest:https://backup-server:8000/csattt/
+    RESTIC_CACERT: /run/secrets/backup_ca
     RESTIC_PASSWORD_FILE: /run/secrets/repository_password
     RESTIC_REST_USERNAME: csattt
     RESTIC_CACHE_DIR: /tmp/restic-cache
@@ -20,7 +21,7 @@ x-restic-client: &restic-client
   tmpfs:
     - /tmp:rw,noexec,nosuid,size=128m,mode=1777
   networks: [backup_net]
-  secrets: [repository_password, rest_http_password]
+  secrets: [repository_password, rest_http_password, backup_ca]
   logging:
     driver: json-file
     options:
@@ -48,6 +49,13 @@ services:
       - --htpasswd-file
       - /run/secrets/rest_htpasswd
       - --private-repos
+      - --tls
+      - --tls-cert
+      - /run/secrets/backup_server_cert
+      - --tls-key
+      - /run/secrets/backup_server_key
+      - --tls-min-ver
+      - "1.3"
       - --log
       - "-"
     labels:
@@ -60,7 +68,7 @@ services:
         bind:
           create_host_path: false
     networks: [backup_net]
-    secrets: [rest_htpasswd]
+    secrets: [rest_htpasswd, backup_server_cert, backup_server_key]
     logging:
       driver: json-file
       options:
@@ -110,3 +118,9 @@ secrets:
     file: "${LAB_SECRET_DIR:?Set LAB_SECRET_DIR}/repository-password"
   rest_http_password:
     file: "${LAB_SECRET_DIR:?Set LAB_SECRET_DIR}/rest-http-password"
+  backup_ca:
+    file: "${LAB_TLS_DIR:?Set LAB_TLS_DIR}/ca.crt"
+  backup_server_cert:
+    file: "${LAB_TLS_DIR:?Set LAB_TLS_DIR}/server.crt"
+  backup_server_key:
+    file: "${LAB_TLS_DIR:?Set LAB_TLS_DIR}/server.key"

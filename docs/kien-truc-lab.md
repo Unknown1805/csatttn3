@@ -1,7 +1,7 @@
 # Kiến trúc lab — Pháp chứng số và ứng cứu sự cố ransomware
 
 Liên quan: Issue #6.
-Trạng thái: Đã triển khai nền lab bằng QEMU/KVM và Docker; đã kiểm thử backup/restore. Phần giám sát phát hiện và chế độ cô lập cho phiên sự cố chưa được nghiệm thu.
+Trạng thái: Đã triển khai nền lab bằng QEMU/KVM và Docker; đã kiểm thử backup/restore qua HTTPS/TLS 1.3. Phần giám sát phát hiện và chế độ cô lập cho phiên sự cố chưa được nghiệm thu.
 
 ## 1. Mục tiêu
 
@@ -116,7 +116,8 @@ Kiểm tra cú pháp Compose thành công chỉ xác nhận cấu hình được
 - Đĩa hệ điều hành vda dung lượng 50 GiB; root LV khoảng 48 GiB.
 - Đã thử thu RAM và phân tích được tiến trình kiểm chứng bằng Volatility.
 - Đã backup 15 file, tổng 600 B; kiểm tra kho thành công; restore khớp 15/15 SHA-256.
-- Backup-server đã dừng; đĩa backup đã tháo khỏi cấu hình VM đang chạy và lần khởi động sau.
+- Ở lượt HTTP giai đoạn 2 đã thử dừng server, unmount và tháo đĩa backup khỏi cả live/config. Lượt HTTPS ngày 30/10 đã gắn lại đĩa để kiểm thử; phải kết thúc và xác minh tháo lại trước phiên sự cố.
+- HTTPS GATE: OK; snapshot mới f54b7415, khôi phục snapshot gốc 4e9113aa khớp 15/15 SHA-256. Xem [biên bản HTTPS](kiem-thu/https-backup-p3.md).
 - Còn phải triển khai giám sát phát hiện, kiểm chứng cô lập và thực hiện lượt sự cố.
 
 Trước lượt sự cố, phải nghiệm thu phần giám sát, cô lập, thu ảnh đĩa và khôi phục trong môi trường sạch.
