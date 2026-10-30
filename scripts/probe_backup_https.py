@@ -80,8 +80,13 @@ def probe(model, compose, environment):
     status, protocol, config = request(address, context, password=password)
     if status != 200 or protocol != "TLSv1.3":
         raise RuntimeError("Existing repository config is not accessible through TLS 1.3.")
-    json.loads(config)
-    result["valid_ca_and_name"] = {"status": status, "protocol": protocol}
+    # The REST backend returns the encrypted repository config as opaque bytes.
+    # Restic itself decrypts and authenticates it in the subsequent client tests.
+    if not config:
+        raise RuntimeError("Existing repository returned an empty encrypted config.")
+    result["valid_ca_and_name"] = {
+        "status": status, "protocol": protocol, "config_bytes": len(config),
+    }
     for label, value in (("no_auth", None), ("wrong_password", password + "-incorrect")):
         code, _, _ = request(address, context, password=value)
         if code != 401:

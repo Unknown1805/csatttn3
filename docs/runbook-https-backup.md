@@ -1,6 +1,6 @@
 # HTTPS cho backup Restic
 
-Trạng thái: đã chuẩn bị cấu hình và bài kiểm tra. Chỉ ghi nhận triển khai thành công sau khi các lệnh thực tế trong Ubuntu VM trả kết quả đạt. Không thay thế nghiệm thu cô lập sự cố, phục hồi VM sạch hoặc RTO/RPO.
+Trạng thái: đã nghiệm thu backup/restore qua HTTPS trong VM ngày 30/10/2026: HTTPS GATE: OK. Xem [biên bản nghiệm thu](kiem-thu/https-backup-p3.md). Kết quả không thay thế nghiệm thu cô lập sự cố, phục hồi VM sạch hoặc RTO/RPO.
 
 ## 1. Luồng và chứng chỉ
 
@@ -75,6 +75,10 @@ Chạy gate đầy đủ; LAB_RESTORE_DIR phải là đường dẫn mới chưa
     python3 scripts/verify_backup_https.py --env-file ../backup.env
 
 Gate kiểm tra đúng 15 file giả / 600 B, chạy hai phép thử CA/tên sai bằng chính Restic worker, đọc được snapshot gốc, backup một snapshot có tag mới, check --read-data, rồi restore snapshot gốc qua HTTPS vào thư mục mới. Nó đối chiếu 15/15 SHA-256 dữ liệu khôi phục và 15/15 nguồn còn nguyên.
+
+Mỗi phép thử Restic với CA/tên sai giới hạn 8 giây trong container, thêm 2 giây để kết thúc nếu cần. Chỉ ghi nhận đạt khi tiến trình đã kết thúc với mã khác 0 và log chứa đúng lỗi x509 dự kiến; lỗi mạng hoặc timeout phía runner không được tính là đạt. Runner có giới hạn ngoài 30 giây, lưu log và dừng đúng container thử nghiệm mang tên ngẫu nhiên khi bị ngắt. Không tắt kiểm tra chứng chỉ.
+
+Nếu một lượt dừng giữa chừng, giữ nguyên thư mục chứng cứ và đích restore đã tạo; chọn LAB_RESTORE_DIR mới cho lượt chạy lại. Không init lại kho hoặc tạo lại mật khẩu/chứng chỉ.
 
 Snapshot gốc bắt buộc giữ được:
 

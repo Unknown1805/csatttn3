@@ -8,6 +8,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import uuid
 
 import backup_lab as lab
 from probe_backup_https import probe
@@ -43,6 +44,51 @@ def files(directory):
             raise RuntimeError(f"Synthetic source content differs: {name}")
         hashes[name] = hashlib.sha256(data).hexdigest()
     return hashes
+
+
+def restic_negative_test(compose, environment, directory, name, options, arguments, expected_error):
+    container = "csattt-tls-probe-" + uuid.uuid4().hex
+    log = directory / (name + ".log")
+    command = compose + [
+        "run", "--rm", "--no-deps", "-T", "--name", container,
+        "--entrypoint", "/bin/sh",
+    ] + options + [
+        "backup-worker", "-c",
+        'exec timeout -s TERM -k 2 8 /usr/bin/restic "$@"',
+        "tls-probe",
+    ] + arguments
+    print(f"Certificate rejection test: {name} (bounded diagnostic)", flush=True)
+    completed = None
+    try:
+        completed = subprocess.run(
+            command, capture_output=True, text=True, env=environment,
+            stdin=subprocess.DEVNULL, timeout=30,
+        )
+    except subprocess.TimeoutExpired as error:
+        def decoded(value):
+            return value.decode(errors="replace") if isinstance(value, bytes) else (value or "")
+        log.write_text(decoded(error.stdout) + decoded(error.stderr) + "\nOUTER TIMEOUT: test failed.\n")
+        raise RuntimeError(f"Diagnostic timed out: {name}; inspect {log}.") from error
+    finally:
+        # Compose --rm removes an exited container, but cannot stop a still-running one.
+        if completed is None:
+            try:
+                cleanup = subprocess.run(
+                    lab.DOCKER + ["stop", "--time", "2", container],
+                    capture_output=True, text=True, env=environment,
+                    stdin=subprocess.DEVNULL, timeout=10,
+                )
+                with log.open("a") as stream:
+                    stream.write("\nScoped cleanup:\n" + cleanup.stdout + cleanup.stderr)
+            except (OSError, subprocess.SubprocessError) as error:
+                with log.open("a") as stream:
+                    stream.write(f"\nCleanup needs manual check: {container}: {error}\n")
+    combined = completed.stdout + completed.stderr
+    log.write_text(combined + f"\nDiagnostic exit code: {completed.returncode}\n")
+    if completed.returncode == 0 or "x509" not in combined or expected_error not in combined:
+        raise RuntimeError(f"Restic negative test failed: {name}; inspect {log}.")
+    print(f"Certificate rejection confirmed: {name}", flush=True)
+    return "rejected by certificate verification"
 
 
 def verify(environment_file):
@@ -85,16 +131,9 @@ def verify(environment_file):
     negative_results = {}
     for name, options, arguments, expected_error in negative_tests:
         # Only these diagnostic runs bypass the wrapper; no credentials are sent before TLS verifies.
-        completed = subprocess.run(
-            compose + ["run", "--rm", "--no-deps", "-T", "--entrypoint", "/usr/bin/restic"]
-            + options + ["backup-worker"] + arguments,
-            capture_output=True, text=True, env=environment, timeout=60,
+        negative_results[name] = restic_negative_test(
+            compose, environment, result_directory, name, options, arguments, expected_error,
         )
-        (result_directory / (name + ".log")).write_text(completed.stdout + completed.stderr)
-        combined = completed.stdout + completed.stderr
-        if completed.returncode == 0 or "x509" not in combined or expected_error not in combined:
-            raise RuntimeError(f"Restic negative test failed: {name}; inspect its log.")
-        negative_results[name] = "rejected by certificate verification"
     (result_directory / "restic-negative-tests.json").write_text(
         json.dumps(negative_results, indent=2) + "\n"
     )
