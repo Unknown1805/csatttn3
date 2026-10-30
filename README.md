@@ -63,3 +63,5 @@ Xem [Hướng dẫn làm việc nhóm](CONTRIBUTING.md) để biết cách cài 
   khôi phục môi trường sạch và RTO/RPO.
 
 Xem [Biên bản nghiệm thu nền lab](docs/kiem-thu/nghiem-thu-nen-lab.md).
+
+Hướng dẫn nâng cấp đang chuẩn bị: [HTTPS cho backup](docs/runbook-https-backup.md). Chưa ghi nhận nghiệm thu HTTPS thực tế.

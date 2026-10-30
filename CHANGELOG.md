@@ -7,6 +7,8 @@ Chi tiết công việc và review được lưu trong Issue/Pull Request.
 
 ### Added
 
+- Bổ sung cấu hình HTTPS/TLS 1.3 cho Restic, CA riêng, kiểm tra chứng chỉ và gate backup/restore; chờ nghiệm thu trong VM.
+
 - Bổ sung biên bản nghiệm thu nền lab tại docs/kiem-thu/nghiem-thu-nen-lab.md.
 - README mô tả mục tiêu, phạm vi và quy tắc làm việc nhóm.
 - .gitattributes quy định kiểu xuống dòng cho các loại file.

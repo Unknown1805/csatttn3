@@ -2,6 +2,8 @@
 
 Liên quan Issue #6. Đã triển khai và kiểm thử backup/restore cơ bản trong VM Ubuntu bằng QEMU/KVM. Backup-server hiện đã dừng và ổ backup đã tháo khỏi VM. Chưa nghiệm thu chế độ cô lập và khôi phục trong môi trường sạch cho phiên sự cố.
 
+> Lượt nâng cấp HTTPS có cấu hình nguồn mới và hướng dẫn tại [runbook HTTPS](runbook-https-backup.md). Các kết quả HTTP bên dưới là lịch sử giai đoạn 2; không chạy lại init hoặc tạo lại secret khi nâng cấp.
+
 ## Mô hình và quyền
 
 - Workstation tiếp tục ở incident_net; phần cấu hình và dữ liệu của stage 1 được giữ nguyên.

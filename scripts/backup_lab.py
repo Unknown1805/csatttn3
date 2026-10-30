@@ -78,6 +78,65 @@ def check_secret(path, uid=1000):
         raise RuntimeError("Secret directory must belong to UID 1000 with mode 0700.")
 
 
+def tls_paths(model):
+    return {
+        name: Path(model["secrets"][name]["file"])
+        for name in ("backup_ca", "backup_server_cert", "backup_server_key")
+    }
+
+
+def check_tls(model):
+    paths = tls_paths(model)
+    for path in paths.values():
+        check_secret(path)
+    if len({path.parent.resolve() for path in paths.values()}) != 1:
+        raise RuntimeError("Runtime TLS files must be in one private directory.")
+    ca, cert, key = (paths[name] for name in ("backup_ca", "backup_server_cert", "backup_server_key"))
+    subprocess.run([
+        "openssl", "verify", "-CAfile", str(ca), "-purpose", "sslserver",
+        "-verify_hostname", "backup-server", str(cert),
+    ], capture_output=True, check=True, text=True, timeout=10)
+    names = subprocess.check_output([
+        "openssl", "x509", "-in", str(cert), "-noout", "-ext", "subjectAltName",
+    ], text=True, timeout=10)
+    if "backup-server" not in re.findall(r"DNS:([^,\s]+)", names):
+        raise RuntimeError("Server certificate must have SAN DNS:backup-server.")
+    certificate_key = subprocess.check_output([
+        "openssl", "x509", "-in", str(cert), "-noout", "-pubkey",
+    ], timeout=10)
+    private_public_key = subprocess.check_output([
+        "openssl", "pkey", "-in", str(key), "-pubout",
+    ], timeout=10, stderr=subprocess.PIPE)
+    if certificate_key != private_public_key:
+        raise RuntimeError("Server certificate and private key do not match.")
+    server_command = model["services"]["backup-server"]["command"]
+    required = {
+        "--tls-cert": "/run/secrets/backup_server_cert",
+        "--tls-key": "/run/secrets/backup_server_key",
+        "--tls-min-ver": "1.3",
+    }
+    if "--tls" not in server_command or "--no-auth" in server_command:
+        raise RuntimeError("Server must require TLS and HTTP authentication.")
+    for option, value in required.items():
+        if (server_command.count(option) != 1
+                or server_command.index(option) + 1 >= len(server_command)
+                or server_command[server_command.index(option) + 1] != value):
+            raise RuntimeError(f"Incorrect server TLS option: {option}")
+    for service_name in ("backup-worker", "restore-worker"):
+        environment = model["services"][service_name]["environment"]
+        if environment.get("RESTIC_REPOSITORY") != "rest:https://backup-server:8000/csattt/":
+            raise RuntimeError("Workers must use the expected HTTPS repository.")
+        if environment.get("RESTIC_CACERT") != "/run/secrets/backup_ca":
+            raise RuntimeError("Workers must verify the private CA certificate.")
+
+
+def check_client_arguments(arguments):
+    forbidden = ("--insecure-tls", "--cacert", "--repo", "-r", "--tls-client-cert",
+                 "--option", "-o", "--password-", "--no-lock")
+    if any(argument.startswith(forbidden) for argument in arguments):
+        raise RuntimeError("Transport, authentication and lock overrides are not allowed.")
+
+
 def compose_command(environment_file):
     return DOCKER + [
         "compose", "--env-file", str(Path(environment_file).resolve(strict=True)),
@@ -94,6 +153,7 @@ def preflight(model):
         labels["org.csattt.backup.mount"], repository,
         labels["org.csattt.backup.uuid"],
     )
+    check_tls(model)
     for name in ("rest_htpasswd", "repository_password", "rest_http_password"):
         check_secret(model["secrets"][name]["file"])
     source = bind_source(model["services"]["backup-worker"], "/source")
@@ -104,7 +164,7 @@ def preflight(model):
     real_source, real_repository = source.resolve(), repository.resolve()
     if real_source.is_relative_to(real_repository) or real_repository.is_relative_to(real_source):
         raise RuntimeError("Sample data and backup repository must not overlap.")
-    print("PREFLIGHT: OK (UUID, ext4, RW, repository and secret permissions)", file=sys.stderr, flush=True)
+    print("PREFLIGHT: OK (UUID, ext4, RW, secrets and verified TLS certificate)", file=sys.stderr, flush=True)
 
 
 def check_running_server(compose, model, environment):
@@ -122,6 +182,15 @@ def check_running_server(compose, model, environment):
         raise RuntimeError("Backup server is not running with the expected repository.")
     if mounts[0]["Type"] != "bind" or not mounts[0]["RW"] or Path(mounts[0]["Source"]).resolve() != expected_repository:
         raise RuntimeError("Running server repository differs from the validated mount.")
+    if actual["Config"]["Cmd"] != model["services"]["backup-server"]["command"]:
+        raise RuntimeError("Running server command differs from the HTTPS configuration.")
+    for name in ("rest_htpasswd", "backup_server_cert", "backup_server_key"):
+        destination = "/run/secrets/" + name
+        expected = Path(model["secrets"][name]["file"]).resolve()
+        matches = [item for item in actual["Mounts"] if item["Destination"] == destination]
+        if len(matches) != 1 or matches[0]["Type"] != "bind" or matches[0]["RW"] or Path(matches[0]["Source"]).resolve() != expected:
+            raise RuntimeError(f"Running server has an incorrect read-only secret: {name}")
+
 
 
 def check_workstation_source(compose, model, environment):
@@ -164,6 +233,7 @@ def main():
         check_running_server(compose, model, environment)
         if not args.arguments or args.arguments[0] not in ("init", "backup", "check", "snapshots", "ls", "stats"):
             raise RuntimeError("Allowed client commands: init, backup, check, snapshots, ls, stats.")
+        check_client_arguments(args.arguments)
         if args.arguments[0] == "backup":
             check_workstation_source(compose, model, environment)
         command = ["run", "--rm", "--no-deps", "backup-worker"] + args.arguments
