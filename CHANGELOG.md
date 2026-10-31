@@ -7,6 +7,8 @@ Chi tiết công việc và review được lưu trong Issue/Pull Request.
 
 ### Added
 
+- Chuẩn bị Wazuh 4.14.9 với dashboard chỉ mở trên loopback của VM, mạng giám sát riêng, bộ mật khẩu/CA riêng và FIM chỉ đọc dữ liệu giả. Chưa nghiệm thu runtime hoặc cảnh báo.
+
 - Bổ sung cấu hình HTTPS/TLS 1.3 cho Restic, CA riêng, kiểm tra chứng chỉ và gate backup/restore; đã nghiệm thu trong VM ngày 30/10/2026.
 
 - Bổ sung biên bản nghiệm thu nền lab tại docs/kiem-thu/nghiem-thu-nen-lab.md.
