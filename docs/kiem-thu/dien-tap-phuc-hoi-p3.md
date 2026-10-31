@@ -107,9 +107,29 @@ Trích xuất từ lệnh `restic -r ~/lab-restic-p3/repo --json snapshots 3ad2e
 
 ### 3.3. Đối chiếu tính nhất quán số liệu
 - **Khớp nối thời gian:** Metadata ghi nhận `backup_start: 2026-10-30T06:36:32.711446492-04:00`. Quy đổi từ múi giờ EDT (`UTC-4`) sang UTC tương ứng là `10:36:32 UTC`. Mốc này nằm chuẩn xác trong khoảng thời gian chạy lệnh terminal (`10:36:14 UTC` đến `10:36:40 UTC`).
-- **Khớp nối dữ liệu:**
+- **Khớp nối dữ liệu:** 
   - `total_files_processed`: 15 file mới hoàn toàn (`files_new: 15`).
-  - `total_bytes_processed`: 1065 bytes (Tương đương 1.040 KiB gồm dữ liệu 15 file và cấu trúc cây thư mục).
+  - `total_bytes_processed`: 1065 bytes. Trường này phản ánh thuần túy tổng kích thước thực tế của 15 file dữ liệu nguồn được xử lý (không bao gồm metadata hay cấu trúc cây thư mục).
+  - Đối chiếu kiểm tra thực tế bằng lệnh `wc -c file_*.txt` trong thư mục nguồn:
+    ```text
+    71 file_01.txt
+    71 file_02.txt
+    71 file_03.txt
+    71 file_04.txt
+    71 file_05.txt
+    71 file_06.txt
+    71 file_07.txt
+    71 file_08.txt
+    71 file_09.txt
+    71 file_10.txt
+    71 file_11.txt
+    71 file_12.txt
+    71 file_13.txt
+    71 file_14.txt
+    71 file_15.txt
+    1065 total
+    ```
+    Tổng kích thước đo được là 1065 bytes, khớp hoàn toàn 1:1 với giá trị `total_bytes_processed: 1065` trong JSON metadata.
 
 ---
 
@@ -130,7 +150,12 @@ rm ~/lab-restic-p3/tampered/file_02.txt
 
 ### 4.2. Bảng kết quả đối chiếu với Manifest gốc
 - Mốc thời gian thực hiện kiểm tra (UTC): `2026-10-30 10:39:43 UTC`
-- Lệnh thực thi: `sha256sum -c ~/lab-restic-p3/manifest/manifest_p3.sha256`
+- Thư mục thực thi: `~/lab-restic-p3/tampered`
+- Lệnh thực thi:
+  ```bash
+  cd ~/lab-restic-p3/tampered
+  sha256sum -c ~/lab-restic-p3/manifest/manifest_p3.sha256
+  ```
 
 | Tên file | Trạng thái thực tế | Kết quả kiểm tra SHA-256 | Đánh giá nghiệm thu |
 | --- | --- | --- | --- |
@@ -170,8 +195,27 @@ rm ~/lab-restic-p3/tampered/file_02.txt
 
 ### 5.2. Đối chiếu toàn vẹn sau phục hồi
 - Thư mục kiểm tra: `~/lab-restic-p3/restored/data_source`
-- Lệnh thực thi: `sha256sum -c ~/lab-restic-p3/manifest/manifest_p3.sha256`
-- Kết quả: Đủ 15/15 file đạt trạng thái `OK`, không thừa, không thiếu, toàn vẹn 100% so với trước khi bị can thiệp.
+
+**a) Kiểm tra số lượng và danh sách file (chứng minh không thiếu / không thừa):**
+- Lệnh thực thi:
+  ```bash
+  cd ~/lab-restic-p3/restored/data_source
+  ls -1 | wc -l
+  ls -1
+  ```
+- Kết quả đầu ra:
+  ```text
+  15
+  ```
+  Danh sách hiển thị trả về đúng 15 file từ `file_01.txt` đến `file_15.txt`, không tồn tại bất kỳ file rác hoặc file thừa ngoài danh mục.
+
+**b) Đối chiếu mã băm tính toàn vẹn:**
+- Lệnh thực thi:
+  ```bash
+  cd ~/lab-restic-p3/restored/data_source
+  sha256sum -c ~/lab-restic-p3/manifest/manifest_p3.sha256
+  ```
+- Kết quả: Đủ 15/15 file đạt trạng thái `OK`, toàn vẹn 100% so với trước khi bị can thiệp.
 
 > **Trích đoạn log đối chiếu 15 file sau phục hồi:**
 > ```text
@@ -192,25 +236,30 @@ rm ~/lab-restic-p3/tampered/file_02.txt
 > file_15.txt: OK
 > ```
 
+
 ---
 
 ## 6. Đo lường thời gian thực tế
 
-### 6.1. Phương pháp đo
-Thời gian được đo tự động bằng cách bắt mốc epoch nanosecond (`date +%s%N`) trực tiếp trong shell script trước và sau từng tiến trình, kết hợp lấy mốc chuẩn UTC (`date -u`) và tính toán độ chênh lệch qua `bc`:
+### 6.1. Phương pháp đo và cách thức thực thi
+- **Cách thức chạy:** Tiến trình đo thời gian được tự động hóa bằng đoạn mã shell script thực thi trực tiếp trên terminal của máy ảo Kali Linux.
+- **Thư mục chạy lệnh ban đầu:** `~/lab-restic-p3`
+- **Cơ chế đo:** Sử dụng mốc thời gian epoch nanosecond (`date +%s%N`) tại các điểm chặn (checkpoints) trước và sau lệnh restore, lệnh verify, sau đó tính toán thời lượng bằng lệnh `bc` và ghi nhận mốc giờ chuẩn UTC (`date -u`):
 
 ```bash
-# Đo mốc bắt đầu toàn trình
+cd ~/lab-restic-p3
+
+# Mốc bắt đầu toàn trình
 START_ALL=$(date +%s%N)
 START_UTC=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
 
-# 1. Đo riêng tiến trình Restore
+# 1. Đo riêng tiến trình Restore từ snapshot
 RESTORE_START=$(date +%s%N)
 restic -r ./repo restore 3ad2e70f --target ./restored
 RESTORE_END=$(date +%s%N)
 
-# 2. Đo tiếp công đoạn đối chiếu mã băm (Verify)
-cd ./restored/data_source
+# 2. Chuyển thư mục và đo công đoạn xác minh tính toàn vẹn (Verify)
+cd ~/lab-restic-p3/restored/data_source
 sha256sum -c ~/lab-restic-p3/manifest/manifest_p3.sha256
 
 # Mốc kết thúc toàn trình
@@ -218,17 +267,35 @@ END_ALL=$(date +%s%N)
 END_UTC=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
 
 # Tính toán thời lượng (đơn vị: giây)
-RESTORE_DURATION=$(echo "scale=3; ($RESTORE_END -$RESTORE_START) / 1000000000" | bc)
-TOTAL_DURATION=$(echo "scale=3; ($END_ALL -$START_ALL) / 1000000000" | bc)
+RESTORE_DURATION=$(echo "scale=3; ($RESTORE_END - $RESTORE_START) / 1000000000" | bc)
+TOTAL_DURATION=$(echo "scale=3; ($END_ALL - $START_ALL) / 1000000000" | bc)
+
+echo "=========================================="
+echo "Mốc bắt đầu (UTC): $START_UTC"
+echo "Mốc kết thúc (UTC): $END_UTC"
+echo "Thời lượng chạy lệnh restore: ${RESTORE_DURATION}s"
+echo "Tổng thời lượng từ restore đến xác minh: ${TOTAL_DURATION}s"
+echo "=========================================="
 ```
 
-### 6.2. Dữ liệu đo lường thực tế
+### 6.2. Dữ liệu và trích đoạn log đo lường thực tế
 - Mốc bắt đầu quy trình khôi phục (UTC): `2026-10-30 10:46:05 UTC`
 - Mốc kết thúc xác minh toàn vẹn (UTC): `2026-10-30 10:47:29 UTC`
 - **Thời lượng chạy lệnh restore:** `52.075 giây`
 - **Tổng thời lượng từ bắt đầu restore đến hoàn tất xác minh:** `83.426 giây`
 
-> **Lưu ý kỹ thuật về chỉ số phục hồi:**
+> **Trích đoạn đầu ra log thực tế từ terminal:**
+> ```text
+> restoring snapshot 3ad2e70f of [/home/nvtp05112/lab-restic-p3/data_source] at 2026-10-30 06:36:32.711446492 -0400 EDT by nvtp05112@nvtp05112 to /home/nvtp05112/lab-restic-p3/restored
+> ==========================================
+> Mốc bắt đầu (UTC): 2026-10-30 10:46:05 UTC
+> Mốc kết thúc (UTC): 2026-10-30 10:47:29 UTC
+> Thời lượng chạy lệnh restore: 52.075s
+> Tổng thời lượng từ restore đến xác minh: 83.426s
+> ==========================================
+> ```
+
+> **Lưu ý kỹ thuật về chỉ số phục hồi:** 
 > Kết quả đo lường trên là thời lượng diễn tập quy trình kỹ thuật độc lập trong môi trường máy ảo cục bộ. Phép thử này chưa bao gồm độ trễ mạng, lưu lượng thực tế và các yếu tố kiểm soát phân tán của bài lab tích hợp, do đó nhóm không tự ý suy diễn hoặc kết luận chỉ số RPO/RTO = 0.
 
 ---
