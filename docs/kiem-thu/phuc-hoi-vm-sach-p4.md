@@ -300,7 +300,7 @@ Log stdout của lệnh restore:
 Summary: Restored 16 files/dirs (1.040 KiB) in 0:00
 
 Log kiểm tra SHA-256:
- file_01.txt: OK
+file_01.txt: OK
 file_02.txt: OK
 file_03.txt: OK
 file_04.txt: OK
