@@ -285,10 +285,68 @@ print(f"Tổng thời lượng restore + xác minh: {total_duration:.4f}s")
 
 ### 7.2. Kết quả đo đạc thực tế
 
-* **Mốc thời gian bắt đầu quy trình (UTC):** `2026-11-01 13:43:05 UTC`
-* **Mốc thời gian hoàn tất quy trình (UTC):** `2026-11-01 13:43:06 UTC`
-* **Thời lượng thực thi riêng lệnh Restore:** `0.7299 giây`
-* **Tổng thời lượng Restore kết hợp Xác minh 2 lớp:** `0.7424 giây`
+**Trích xuất log thực thi từ script (`p4_execution.log`):**
+
+```text
+=== BẮT ĐẦU QUY TRÌNH P4 (UTC): 2026-11-01 13:43:05 UTC ===
+=== HOÀN TẤT QUY TRÌNH P4 (UTC): 2026-11-01 13:43:06 UTC ===
+--------------------------------------------------
+Thư mục phục hồi thực tế: ./restored_target/data_source
+Thời lượng restore: 0.7299s
+Tổng thời lượng restore + xác minh: 0.7424s
+--------------------------------------------------
+Log stdout của lệnh restore:
+ restoring snapshot 3ad2e70f of [/home/nvtp05112/lab-restic-p3/data_source] at 2026-10-30 06:36:32.711446492 -0400 EDT by nvtp05112@nvtp05112 to ./restored_target
+Summary: Restored 16 files/dirs (1.040 KiB) in 0:00
+
+Log kiểm tra SHA-256:
+ file_01.txt: OK
+file_02.txt: OK
+file_03.txt: OK
+file_04.txt: OK
+file_05.txt: OK
+file_06.txt: OK
+file_07.txt: OK
+file_08.txt: OK
+file_09.txt: OK
+file_10.txt: OK
+file_11.txt: OK
+file_12.txt: OK
+file_13.txt: OK
+file_14.txt: OK
+file_15.txt: OK
+
+Số lượng file trong thư mục: 15 (Kỳ vọng: 15)
+Danh sách chi tiết file (ls -la):
+ total 68
+drwxrwxr-x 2 kali kali 4096 Oct 30 06:34 .
+drwx------ 3 kali kali 4096 Nov  1 08:43 ..
+-rw-rw-r-- 1 kali kali   71 Oct 30 06:34 file_01.txt
+-rw-rw-r-- 1 kali kali   71 Oct 30 06:34 file_02.txt
+-rw-rw-r-- 1 kali kali   71 Oct 30 06:34 file_03.txt
+-rw-rw-r-- 1 kali kali   71 Oct 30 06:34 file_04.txt
+-rw-rw-r-- 1 kali kali   71 Oct 30 06:34 file_05.txt
+-rw-rw-r-- 1 kali kali   71 Oct 30 06:34 file_06.txt
+-rw-rw-r-- 1 kali kali   71 Oct 30 06:34 file_07.txt
+-rw-rw-r-- 1 kali kali   71 Oct 30 06:34 file_08.txt
+-rw-rw-r-- 1 kali kali   71 Oct 30 06:34 file_09.txt
+-rw-rw-r-- 1 kali kali   71 Oct 30 06:34 file_10.txt
+-rw-rw-r-- 1 kali kali   71 Oct 30 06:34 file_11.txt
+-rw-rw-r-- 1 kali kali   71 Oct 30 06:34 file_12.txt
+-rw-rw-r-- 1 kali kali   71 Oct 30 06:34 file_13.txt
+-rw-rw-r-- 1 kali kali   71 Oct 30 06:34 file_14.txt
+-rw-rw-r-- 1 kali kali   71 Oct 30 06:34 file_15.txt
+```
+
+**Bảng tổng hợp chỉ số đo lường hiệu năng:**
+
+| Hạng mục đo lường | Thời điểm / Thời lượng | Đơn vị tính | Phương pháp xác thực |
+| :--- | :--- | :--- | :--- |
+| **Thời điểm bắt đầu** | `2026-11-01 13:43:05 UTC` | ISO-8601 UTC | `datetime.now(timezone.utc)` |
+| **Thời điểm kết thúc** | `2026-11-01 13:43:06 UTC` | ISO-8601 UTC | `datetime.now(timezone.utc)` |
+| **Lệnh Restore Restic** | `0.7299` | Giây (s) | `time.perf_counter()` bóc tách riêng |
+| **Toàn trình (Restore + Verify)** | `0.7424` | Giây (s) | `time.perf_counter()` toàn bộ quy trình |
+| **Số lượng tệp phục hồi** | `15 / 15` | Tệp tin | Khớp tuyệt đối `manifest_p3.sha256` |
 
 ## 8. Giới hạn kỹ thuật và Kết luận nghiệm thu
 
