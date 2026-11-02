@@ -1,7 +1,7 @@
 # Kiến trúc lab — Pháp chứng số và ứng cứu sự cố ransomware
 
 Liên quan: Issue #6.
-Trạng thái: Đã triển khai nền lab bằng QEMU/KVM và Docker; đã kiểm thử backup/restore qua HTTPS/TLS 1.3 và nghiệm thu FIM cơ bản bằng Wazuh với năm ca vô hại. Chế độ cô lập cho phiên sự cố chưa được nghiệm thu.
+Trạng thái: Đã triển khai nền lab bằng QEMU/KVM và Docker; đã kiểm thử backup/restore qua HTTPS/TLS 1.3 và nghiệm thu FIM cơ bản bằng Wazuh với năm ca vô hại. Đã kiểm chứng cô lập nền và Pause/Resume theo phạm vi A2 ngày 03/11/2026; chưa chạy lượt sự cố.
 
 ## 1. Mục tiêu
 
@@ -49,7 +49,8 @@ Công cụ thu chứng cứ chạy dưới quyền người vận hành trong VM
 
 - Mã nguồn tiếp tục được sửa bằng VS Code tại repository trên ổ Windows dùng chung.
 - Đưa bản source đã review vào VM bằng bản xuất có commit ID và SHA-256; có thể dùng ISO chỉ đọc rồi tháo sau khi chép.
-- Khi diễn tập: tắt shared folders, shared clipboard và drag-and-drop; ngắt card mạng ảo nối VM ra ngoài.
+- Chế độ A2 đã bỏ card mạng ngoài khỏi live/config, không shared filesystem hoặc USB passthrough/redirection; SPICE đặt clipboard copypaste=no và filetransfer enable=no.
+- Clipboard Kali → Ubuntu đã được người vận hành xác nhận không dán được. Cấu hình vẫn giữ hiển thị/chuột/bàn phím và kênh guest agent; không coi đây là bằng chứng chống mọi đường thoát VM.
 - Chỉ sử dụng NAT tạm thời trong giai đoạn chuẩn bị công cụ và image; kiểm tra lại trạng thái trước phiên sự cố.
 
 ### Các container
@@ -106,14 +107,17 @@ Nếu simulator không phát sinh lưu lượng mạng, PCAP ít hoặc không c
 
 ## 7. Các kiểm tra phải thực hiện khi triển khai
 
-- [ ] VM đã ngắt kết nối ra ngoài và tắt các tính năng chia sẻ với máy thật.
-- [ ] Container chỉ tham gia đúng mạng; không có cổng publish hoặc quyền ngoài thiết kế.
+Các dấu đạt dưới đây áp dụng cho phép thử nền đã ghi nhận; kiểm tra lại khi cấu hình thay đổi và trước mỗi lượt sự cố.
+
+- [x] VM cô lập và kênh chia sẻ đã khóa theo cấu hình/phạm vi kiểm thử A2.
+- [x] Bốn container hiện có chỉ tham gia đúng mạng internal; không actual port publishing, host network/PID hoặc privileged trong lượt A2.
+- [x] Pause/Resume và kiểm tra dịch vụ sau Resume đạt trong lượt vô hại.
 - [ ] Simulator không truy cập được repository sao lưu và vùng chứng cứ.
-- [ ] Đĩa sao lưu đã thực sự được tháo trước phiên sự cố.
-- [ ] Thu được RAM và phân tích được một tiến trình thử nghiệm đã biết.
+- [x] Đĩa backup vắng mặt ở live/config và guest trong lượt A2; vẫn phải kiểm tra lại trước phiên sự cố.
+- [x] Đã thu RAM và phân tích tiến trình thử nghiệm đã biết trong phép thử nền; chưa phải RAM của lượt sự cố.
 - [ ] Đọc được ảnh đĩa chứa dữ liệu mẫu.
-- [ ] Backup và restore bộ dữ liệu nhỏ thành công, đối chiếu được danh mục và SHA-256.
-- [ ] Mỗi kết quả có bằng chứng kiểm tra và thời điểm thực hiện.
+- [x] Backup/restore nền qua HTTPS đạt, đối chiếu 15/15 SHA-256; chưa phải phục hồi lab sau sự cố.
+- [ ] Lượt sự cố chính có bộ chứng cứ, timestamp, hash và các kết luận phân tích đối chiếu được.
 
 Kiểm tra cú pháp Compose thành công chỉ xác nhận cấu hình được công cụ chấp nhận; chưa chứng minh hệ thống chạy đúng hoặc cô lập đúng.
 
@@ -124,9 +128,10 @@ Kiểm tra cú pháp Compose thành công chỉ xác nhận cấu hình được
 - Đĩa hệ điều hành vda đã tăng lên 70 GiB; root LV khoảng 68 GiB.
 - Đã thử thu RAM và phân tích được tiến trình kiểm chứng bằng Volatility.
 - Đã backup 15 file, tổng 600 B; kiểm tra kho thành công; restore khớp 15/15 SHA-256.
-- Ở lượt HTTP giai đoạn 2 đã thử dừng server, unmount và tháo đĩa backup khỏi cả live/config. Lượt HTTPS ngày 30/10 đã gắn lại đĩa để kiểm thử; phải kết thúc và xác minh tháo lại trước phiên sự cố.
+- Đã kết thúc lượt HTTPS và tháo ổ backup; trong lượt A2 ngày 03/11 đã kiểm tra lại đĩa vắng mặt ở live/config và guest. Phải kiểm tra lại trước mỗi phiên sự cố.
 - HTTPS GATE: OK; snapshot mới f54b7415, khôi phục snapshot gốc 4e9113aa khớp 15/15 SHA-256. Xem [biên bản HTTPS](kiem-thu/https-backup-p3.md).
 - Wazuh đã nghiệm thu năm ca FIM cơ bản: tạo, sửa, đổi tên, chỉ đọc và xóa; đối chiếu đủ năm cảnh báo trên Dashboard, đối chứng chỉ đọc 60 giây và kiểm tra lại 15 file nền đạt. Xem [biên bản FIM](kiem-thu/giam-sat-fim-stage4.md).
-- Còn phải kiểm chứng cô lập, chuẩn bị simulator và thực hiện lượt sự cố; trước mỗi lượt phải kiểm tra lại giám sát.
+- A2 đã kiểm chứng cô lập nền, Pause/Resume với log host và kiểm tra dịch vụ sau Resume. Xem [biên bản A2](kiem-thu/co-lap-vm-a2.md) và [runbook](runbook-co-lap.md).
+- Còn phải chuẩn bị simulator và thực hiện lượt sự cố; kiểm tra lại giám sát/cô lập khi thêm simulator hoặc thay đổi cấu hình.
 
-Trước lượt sự cố, phải nghiệm thu phần giám sát, cô lập, thu ảnh đĩa và khôi phục trong môi trường sạch.
+Giám sát và cô lập nền đã có kết quả nghiệm thu theo phạm vi riêng. Trước lượt sự cố vẫn cần thử giới hạn simulator, chuẩn bị acquisition/ảnh đĩa và phương án khôi phục sạch cho lab tích hợp.

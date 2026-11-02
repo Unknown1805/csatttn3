@@ -7,6 +7,8 @@ Chi tiết công việc và review được lưu trong Issue/Pull Request.
 
 ### Added
 
+- Bổ sung runbook cô lập và biên bản A2 ngày 03/11/2026: cấu hình live/config, phép thử không có đường mạng ngoài, kiểm tra 15 file nền và Pause/Resume.
+
 - Bổ sung Wazuh 4.14.9 trên mạng internal riêng, bộ mật khẩu/CA riêng và FIM chỉ đọc dữ liệu giả; Dashboard được truy cập trực tiếp từ Ubuntu VM bằng tên nội bộ.
 - Bổ sung biên bản nghiệm thu FIM cơ bản ngày 02/11/2026: năm ca vô hại, đủ năm cảnh báo khớp giữa log và Dashboard; đối chứng chỉ đọc 60 giây, 15/15 file nền còn nguyên và log xuất có SHA-256.
 
@@ -21,6 +23,8 @@ Chi tiết công việc và review được lưu trong Issue/Pull Request.
 - Bổ sung CONTRIBUTING.md hướng dẫn cài công cụ và quy trình làm việc nhóm trên GitHub.
 
 ### Changed
+
+- Ghi nhận bỏ NIC ngoài, khóa clipboard/truyền file SPICE và USB redirection; sau Resume dịch vụ vẫn đạt HTTP 15/15 và HTTPS 302. Bản khôi phục trước thay đổi lưu riêng trên My Passport.
 
 - Bỏ yêu cầu publish Dashboard 127.0.0.1:8443 không có hiệu lực trên mạng chỉ có internal; hướng dẫn ánh xạ tên wazuh.dashboard tới IP container trong Ubuntu, kiểm tra HTTPS tại cổng 5601 và cập nhật test ranh giới truy cập.
 
