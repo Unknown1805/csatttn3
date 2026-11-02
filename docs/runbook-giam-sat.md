@@ -47,6 +47,12 @@ Active response đang tắt. Không chạy mẫu thật để nghiệm thu phầ
   chưa có chính sách tự xóa: kiểm tra dung lượng trước/sau mỗi buổi, dừng thử nghiệm
   nếu guest hoặc ổ D host còn dưới 15 GiB; xuất chứng cứ rồi mới bàn việc dọn dẹp.
 
+## Kiểm tra sau khi cô lập hoặc Pause/Resume
+
+Lượt A2 ngày 03/11/2026 đã kiểm tra Workstation HTTP 15/15, baseline 15/15 và Dashboard HTTPS 302 cả trước và sau Pause/Resume. VM không còn card mạng ngoài; Dashboard vẫn truy cập từ Ubuntu qua mạng Docker nội bộ. Xem [biên bản A2](kiem-thu/co-lap-vm-a2.md) và [runbook cô lập](runbook-co-lap.md).
+
+Pause dừng cả Wazuh vì cùng nằm trong VM; không kỳ vọng Dashboard trả lời trong lúc paused. Sau Resume cần kiểm tra lại dịch vụ. Lượt A2 chưa tạo một sự kiện FIM mới để nghiệm thu lại toàn tuyến cảnh báo.
+
 ## 1. Kiểm tra mã nguồn trên Kali
 
 Chạy trong checkout dự án, nhánh `feature/giam-sat-phat-hien`:

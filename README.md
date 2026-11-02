@@ -11,7 +11,7 @@ có biểu hiện giống ransomware.
 ## Phạm vi
 
 - Chỉ sử dụng dữ liệu giả phục vụ học tập.
-- Nền lab đã triển khai bằng Docker trong VM Ubuntu trên QEMU/KVM; chế độ cô lập cho phiên sự cố còn phải nghiệm thu.
+- Nền lab đã triển khai bằng Docker trong VM Ubuntu trên QEMU/KVM; đã kiểm chứng cô lập nền và Pause/Resume theo phạm vi A2, phải kiểm tra lại trước mỗi lượt sự cố.
 - Demo trực tiếp trên máy chính dự kiến dùng simulator có phạm vi kiểm soát trên tập file giả đã duyệt: đổi tên file, tạo thông báo hoặc kiểm thử mã hóa. Simulator chưa được triển khai; phải ghi rõ đây là mô phỏng.
 - Linux.Encoder.1 là case nghiên cứu dự kiến trên máy phụ. Chưa xác minh file mẫu cụ thể hoặc SHA-256, chưa thực thi mẫu thật.
 - Chỉ thực nghiệm mẫu thật sau khi đã định danh mẫu, kiểm chứng cô lập, chuẩn bị giám sát, diễn tập nút dừng và thử phục hồi từ bản sao lưu độc lập. Không mang mẫu thật hoặc VM đã nhiễm sang máy chính để chạy demo.
@@ -63,7 +63,10 @@ Xem [Hướng dẫn làm việc nhóm](CONTRIBUTING.md) để biết cách cài 
 - Đã nghiệm thu FIM cơ bản với năm ca vô hại: tạo, sửa, đổi tên, chỉ đọc trong 60 giây và xóa. Log và Dashboard khớp đủ năm cảnh báo; kiểm tra lại 15/15 file nền đạt.
 - Xem [Runbook giám sát](docs/runbook-giam-sat.md) và [Biên bản kiểm thử FIM](docs/kiem-thu/giam-sat-fim-stage4.md).
 - Chưa triển khai simulator và lượt sự cố.
-- Chưa nghiệm thu cô lập cho phiên sự cố, khôi phục môi trường sạch và RTO/RPO.
+- Đã kiểm chứng A2 ngày 03/11/2026: bỏ NIC ngoài, khóa clipboard/truyền file SPICE và USB redirection; các đích TCP đã thử không có đường đi.
+- Đã diễn tập Pause/Resume, ghi nhận paused → running và kiểm tra lại Workstation HTTP 15/15, baseline 15/15, Dashboard HTTPS 302.
+- Xem [Runbook cô lập](docs/runbook-co-lap.md) và [Biên bản A2](docs/kiem-thu/co-lap-vm-a2.md).
+- Chưa nghiệm thu acquisition/phân tích của lượt sự cố, phục hồi sạch và RTO/RPO cho lab tích hợp.
 
 Xem [Biên bản nghiệm thu nền lab](docs/kiem-thu/nghiem-thu-nen-lab.md).
 
