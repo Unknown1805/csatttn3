@@ -12,7 +12,7 @@ có biểu hiện giống ransomware.
 
 - Chỉ sử dụng dữ liệu giả phục vụ học tập.
 - Nền lab đã triển khai bằng Docker trong VM Ubuntu trên QEMU/KVM; đã kiểm chứng cô lập nền và Pause/Resume theo phạm vi A2, phải kiểm tra lại trước mỗi lượt sự cố.
-- Demo trực tiếp trên máy chính dự kiến dùng simulator có phạm vi kiểm soát trên tập file giả đã duyệt: đổi tên file, tạo thông báo hoặc kiểm thử mã hóa. Simulator chưa được triển khai; phải ghi rõ đây là mô phỏng.
+- Demo trên máy chính dùng simulator chỉ đổi tên đúng 15 file giả và tạo note ghi rõ mô phỏng; không mã hóa nội dung. Mã đã chuẩn bị cho Issue #33, chưa triển khai/nghiệm thu trong VM.
 - Linux.Encoder.1 là case nghiên cứu dự kiến trên máy phụ. Chưa xác minh file mẫu cụ thể hoặc SHA-256, chưa thực thi mẫu thật.
 - Chỉ thực nghiệm mẫu thật sau khi đã định danh mẫu, kiểm chứng cô lập, chuẩn bị giám sát, diễn tập nút dừng và thử phục hồi từ bản sao lưu độc lập. Không mang mẫu thật hoặc VM đã nhiễm sang máy chính để chạy demo.
 - Không phát triển chức năng tự lây lan hoặc đánh cắp dữ liệu; không tác động dữ liệu cá nhân.
@@ -62,7 +62,9 @@ Xem [Hướng dẫn làm việc nhóm](CONTRIBUTING.md) để biết cách cài 
 - Đã chạy Wazuh 4.14.9 gồm Manager, Indexer và Dashboard; đăng nhập admin qua HTTPS tại `https://wazuh.dashboard:5601` trong Ubuntu VM.
 - Đã nghiệm thu FIM cơ bản với năm ca vô hại: tạo, sửa, đổi tên, chỉ đọc trong 60 giây và xóa. Log và Dashboard khớp đủ năm cảnh báo; kiểm tra lại 15/15 file nền đạt.
 - Xem [Runbook giám sát](docs/runbook-giam-sat.md) và [Biên bản kiểm thử FIM](docs/kiem-thu/giam-sat-fim-stage4.md).
-- Chưa triển khai simulator và lượt sự cố.
+- Đã chuẩn bị simulator rename-only cho Issue #33: mặc định dry-run, apply tường minh, kiểm tra dữ liệu giả và giới hạn container; chưa nghiệm thu runtime trong VM.
+- Lượt simulator đầu chỉ dùng bản sao mới dưới vùng fim-probe; chưa tác động sample_data của Workstation. Xem [Runbook simulator](docs/runbook-simulator.md).
+- Chưa thực hiện lượt sự cố chính.
 - Đã kiểm chứng A2 ngày 03/11/2026: bỏ NIC ngoài, khóa clipboard/truyền file SPICE và USB redirection; các đích TCP đã thử không có đường đi.
 - Đã diễn tập Pause/Resume, ghi nhận paused → running và kiểm tra lại Workstation HTTP 15/15, baseline 15/15, Dashboard HTTPS 302.
 - Xem [Runbook cô lập](docs/runbook-co-lap.md) và [Biên bản A2](docs/kiem-thu/co-lap-vm-a2.md).

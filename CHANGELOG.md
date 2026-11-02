@@ -7,6 +7,8 @@ Chi tiết công việc và review được lưu trong Issue/Pull Request.
 
 ### Added
 
+- Chuẩn bị simulator rename-only Issue #33, mặc định dry-run và chỉ apply trên 15 file giả đúng mẫu; thêm profile incident dùng image sẵn có, helper tạo bản sao thử mới trong vùng FIM, kiểm thử giới hạn và runbook. Chưa triển khai/nghiệm thu trong VM.
+
 - Bổ sung runbook cô lập và biên bản A2 ngày 03/11/2026: cấu hình live/config, phép thử không có đường mạng ngoài, kiểm tra 15 file nền và Pause/Resume.
 
 - Bổ sung Wazuh 4.14.9 trên mạng internal riêng, bộ mật khẩu/CA riêng và FIM chỉ đọc dữ liệu giả; Dashboard được truy cập trực tiếp từ Ubuntu VM bằng tên nội bộ.

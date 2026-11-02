@@ -7,7 +7,7 @@ Trạng thái: Đã triển khai nền lab bằng QEMU/KVM và Docker; đã ki�
 
 Xây dựng môi trường mô phỏng sự cố ransomware để thực hành phát hiện, cô lập, thu chứng cứ, phân tích diễn biến và khôi phục dữ liệu từ bản sao lưu.
 
-Tài liệu này mô tả nền Docker và luồng demo có kiểm soát. Simulator dự kiến chỉ tác động danh sách file giả đã duyệt bằng cách đổi tên, tạo thông báo hoặc kiểm thử mã hóa; hiện chưa triển khai simulator. Giữ manifest và bản sao lưu sạch trước thử nghiệm. Không phát triển tự lây lan, đánh cắp dữ liệu hoặc tác động dữ liệu cá nhân.
+Tài liệu này mô tả nền Docker và luồng demo có kiểm soát. Mã simulator Issue #33 chỉ đổi tên đúng 15 file giả đã duyệt và tạo note mô phỏng; không mã hóa, tự lây lan hoặc đánh cắp dữ liệu. Chưa triển khai/nghiệm thu runtime trong VM. Mặc định dry-run; apply đầu tiên chỉ trên bản sao mới dưới fim-probe, giữ nguyên sample_data. Giữ manifest và bản sao lưu sạch trước thử nghiệm.
 
 Linux.Encoder.1 là case nghiên cứu mẫu thật dự kiến trên máy phụ, cần thiết kế lab và runbook riêng trước thực nghiệm. Chưa xác minh file mẫu hoặc SHA-256 và chưa thực thi mẫu thật. Nhánh nghiên cứu này phải kiểm chứng cô lập, giám sát, nút dừng và khả năng phục hồi; không mang mẫu thật hoặc VM đã nhiễm sang máy chính để chạy demo. Phạm vi chung được ghi trong README.
 
@@ -33,7 +33,7 @@ Các thành phần chạy theo từng giai đoạn; không khởi động tất 
 | Thành phần | Nhiệm vụ | Mạng |
 |---|---|---|
 | workstation | Tạo, sử dụng dữ liệu giả và cung cấp phép kiểm tra khả dụng | incident_net |
-| simulator (chưa triển khai) | Thực hiện kịch bản mô phỏng đã duyệt trên dữ liệu giả | incident_net |
+| simulator (mã đã chuẩn bị; chưa nghiệm thu VM) | Dry-run hoặc đổi tên 15 file giả, tạo note; chỉ ghi bản sao thử trong giai đoạn đầu | incident_net |
 | backup-worker | Đọc dữ liệu nguồn để sao lưu bằng Restic | backup_net |
 | backup-server | Cung cấp REST backend và lưu repository sao lưu | backup_net |
 | restore-worker | Khôi phục bản sao lưu vào volume mới trong môi trường sạch | backup_net |
@@ -132,6 +132,7 @@ Kiểm tra cú pháp Compose thành công chỉ xác nhận cấu hình được
 - HTTPS GATE: OK; snapshot mới f54b7415, khôi phục snapshot gốc 4e9113aa khớp 15/15 SHA-256. Xem [biên bản HTTPS](kiem-thu/https-backup-p3.md).
 - Wazuh đã nghiệm thu năm ca FIM cơ bản: tạo, sửa, đổi tên, chỉ đọc và xóa; đối chiếu đủ năm cảnh báo trên Dashboard, đối chứng chỉ đọc 60 giây và kiểm tra lại 15 file nền đạt. Xem [biên bản FIM](kiem-thu/giam-sat-fim-stage4.md).
 - A2 đã kiểm chứng cô lập nền, Pause/Resume với log host và kiểm tra dịch vụ sau Resume. Xem [biên bản A2](kiem-thu/co-lap-vm-a2.md) và [runbook](runbook-co-lap.md).
-- Còn phải chuẩn bị simulator và thực hiện lượt sự cố; kiểm tra lại giám sát/cô lập khi thêm simulator hoặc thay đổi cấu hình.
+- Mã simulator và overlay profile incident đã chuẩn bị cho Issue #33; cần nghiệm thu dry-run/apply trên bản sao thử và đối chiếu FIM trước khi dùng cho lượt sự cố. Xem [runbook simulator](runbook-simulator.md).
+- Kiểm tra lại giám sát/cô lập khi thêm simulator hoặc thay đổi cấu hình; chưa thực hiện lượt sự cố chính.
 
 Giám sát và cô lập nền đã có kết quả nghiệm thu theo phạm vi riêng. Trước lượt sự cố vẫn cần thử giới hạn simulator, chuẩn bị acquisition/ảnh đĩa và phương án khôi phục sạch cho lab tích hợp.
