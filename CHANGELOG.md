@@ -7,6 +7,9 @@ Chi tiết công việc và review được lưu trong Issue/Pull Request.
 
 ### Added
 
+- Bổ sung Wazuh 4.14.9 trên mạng internal riêng, bộ mật khẩu/CA riêng và FIM chỉ đọc dữ liệu giả; Dashboard được truy cập trực tiếp từ Ubuntu VM bằng tên nội bộ.
+- Bổ sung biên bản nghiệm thu FIM cơ bản ngày 02/11/2026: năm ca vô hại, đủ năm cảnh báo khớp giữa log và Dashboard; đối chứng chỉ đọc 60 giây, 15/15 file nền còn nguyên và log xuất có SHA-256.
+
 - Bổ sung cấu hình HTTPS/TLS 1.3 cho Restic, CA riêng, kiểm tra chứng chỉ và gate backup/restore; đã nghiệm thu trong VM ngày 30/10/2026.
 
 - Bổ sung biên bản nghiệm thu nền lab tại docs/kiem-thu/nghiem-thu-nen-lab.md.
@@ -18,6 +21,8 @@ Chi tiết công việc và review được lưu trong Issue/Pull Request.
 - Bổ sung CONTRIBUTING.md hướng dẫn cài công cụ và quy trình làm việc nhóm trên GitHub.
 
 ### Changed
+
+- Bỏ yêu cầu publish Dashboard 127.0.0.1:8443 không có hiệu lực trên mạng chỉ có internal; hướng dẫn ánh xạ tên wazuh.dashboard tới IP container trong Ubuntu, kiểm tra HTTPS tại cổng 5601 và cập nhật test ranh giới truy cập.
 
 - Sửa probe đọc config Restic dưới dạng byte mã hóa; giới hạn thời gian phép thử CA/tên sai, lưu log và dừng đúng container thử nghiệm khi runner bị ngắt.
 - Ghi nhận HTTPS GATE: OK; backup 15 file / 600 B, kho kiểm tra không lỗi, restore snapshot gốc khớp 15/15 SHA-256. Bước restore mất 2.677 giây, chưa phải RTO sự cố.

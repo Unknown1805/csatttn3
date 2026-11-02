@@ -1,7 +1,7 @@
 # Kiến trúc lab — Pháp chứng số và ứng cứu sự cố ransomware
 
 Liên quan: Issue #6.
-Trạng thái: Đã triển khai nền lab bằng QEMU/KVM và Docker; đã kiểm thử backup/restore qua HTTPS/TLS 1.3. Phần giám sát phát hiện và chế độ cô lập cho phiên sự cố chưa được nghiệm thu.
+Trạng thái: Đã triển khai nền lab bằng QEMU/KVM và Docker; đã kiểm thử backup/restore qua HTTPS/TLS 1.3 và nghiệm thu FIM cơ bản bằng Wazuh với năm ca vô hại. Chế độ cô lập cho phiên sự cố chưa được nghiệm thu.
 
 ## 1. Mục tiêu
 
@@ -22,6 +22,10 @@ Linux.Encoder.1 là case nghiên cứu mẫu thật dự kiến trên máy phụ
         ├── Docker: mạng backup_net
         │   ├── backup-worker hoặc restore-worker
         │   └── backup-server
+        ├── Docker: mạng monitoring_net
+        │   ├── wazuh.manager (FIM qua mount chỉ đọc)
+        │   ├── wazuh.indexer
+        │   └── wazuh.dashboard (truy cập từ Ubuntu VM)
         └── Công cụ tin cậy thu log, PCAP, RAM và ảnh đĩa
 
 Các thành phần chạy theo từng giai đoạn; không khởi động tất cả cùng lúc.
@@ -33,6 +37,9 @@ Các thành phần chạy theo từng giai đoạn; không khởi động tất 
 | backup-worker | Đọc dữ liệu nguồn để sao lưu bằng Restic | backup_net |
 | backup-server | Cung cấp REST backend và lưu repository sao lưu | backup_net |
 | restore-worker | Khôi phục bản sao lưu vào volume mới trong môi trường sạch | backup_net |
+| wazuh.manager | Theo dõi dữ liệu giả qua mount chỉ đọc, tạo và chuyển cảnh báo FIM | monitoring_net |
+| wazuh.indexer | Lưu và tìm kiếm cảnh báo | monitoring_net |
+| wazuh.dashboard | Hiển thị cảnh báo qua HTTPS trong Ubuntu VM | monitoring_net |
 
 Công cụ thu chứng cứ chạy dưới quyền người vận hành trong VM. Simulator không được nhận các quyền thu chứng cứ này.
 
@@ -47,10 +54,11 @@ Công cụ thu chứng cứ chạy dưới quyền người vận hành trong VM
 
 ### Các container
 
-- incident_net và backup_net đều cấu hình internal.
+- incident_net, backup_net và monitoring_net đều cấu hình internal.
 - workstation và simulator chỉ tham gia incident_net.
 - Không có container làm cầu nối giữa hai mạng.
 - Không publish cổng ra máy thật; không dùng host networking, host PID, privileged hoặc Docker socket.
+- Dashboard được truy cập trực tiếp từ Docker host là Ubuntu VM tại https://wazuh.dashboard:5601; tên được ánh xạ tới IP container trong /etc/hosts của Ubuntu. Không gắn thêm mạng có đường ra ngoài để mở Dashboard.
 - Simulator chạy bằng tài khoản không root, bỏ capability không cần thiết, dùng root filesystem chỉ đọc và có giới hạn tài nguyên.
 - Simulator chỉ được ghi volume dữ liệu giả; không nhận volume hoặc thông tin xác thực sao lưu/chứng cứ.
 
@@ -112,12 +120,13 @@ Kiểm tra cú pháp Compose thành công chỉ xác nhận cấu hình được
 ## 8. Trạng thái triển khai và các mục còn phải kiểm chứng
 
 - VM chính sử dụng QEMU/KVM qua libvirt, tên CSATTT-QEMU.
-- Ubuntu 24.04.5 LTS; 6 vCPU, khoảng 8 GiB RAM.
-- Đĩa hệ điều hành vda dung lượng 50 GiB; root LV khoảng 48 GiB.
+- Ubuntu 24.04.5 LTS; 6 vCPU, đã tăng RAM VM lên 12 GiB cho Wazuh.
+- Đĩa hệ điều hành vda đã tăng lên 70 GiB; root LV khoảng 68 GiB.
 - Đã thử thu RAM và phân tích được tiến trình kiểm chứng bằng Volatility.
 - Đã backup 15 file, tổng 600 B; kiểm tra kho thành công; restore khớp 15/15 SHA-256.
 - Ở lượt HTTP giai đoạn 2 đã thử dừng server, unmount và tháo đĩa backup khỏi cả live/config. Lượt HTTPS ngày 30/10 đã gắn lại đĩa để kiểm thử; phải kết thúc và xác minh tháo lại trước phiên sự cố.
 - HTTPS GATE: OK; snapshot mới f54b7415, khôi phục snapshot gốc 4e9113aa khớp 15/15 SHA-256. Xem [biên bản HTTPS](kiem-thu/https-backup-p3.md).
-- Còn phải triển khai giám sát phát hiện, kiểm chứng cô lập và thực hiện lượt sự cố.
+- Wazuh đã nghiệm thu năm ca FIM cơ bản: tạo, sửa, đổi tên, chỉ đọc và xóa; đối chiếu đủ năm cảnh báo trên Dashboard, đối chứng chỉ đọc 60 giây và kiểm tra lại 15 file nền đạt. Xem [biên bản FIM](kiem-thu/giam-sat-fim-stage4.md).
+- Còn phải kiểm chứng cô lập, chuẩn bị simulator và thực hiện lượt sự cố; trước mỗi lượt phải kiểm tra lại giám sát.
 
 Trước lượt sự cố, phải nghiệm thu phần giám sát, cô lập, thu ảnh đĩa và khôi phục trong môi trường sạch.

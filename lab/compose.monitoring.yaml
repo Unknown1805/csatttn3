@@ -1,0 +1,159 @@
+# Based on wazuh/wazuh-docker v4.14.9 (GPLv2); lab-specific ports and mounts.
+x-monitoring: &monitoring
+  restart: "no"
+  security_opt: [no-new-privileges:true]
+  networks: [monitoring_net]
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+x-readonly-bind: &readonly-bind
+  type: bind
+  read_only: true
+  bind:
+    create_host_path: false
+
+services:
+  wazuh.manager:
+    <<: *monitoring
+    image: wazuh/wazuh-manager:4.14.9@sha256:dbb337727a6b6b17e24b1ccfe4c6e95fd983286ba0ccbf29d568144aa9527c6b
+    hostname: wazuh.manager
+    # The vendor S6 init copies configuration and changes ownership as root.
+    cpus: 2.0
+    mem_limit: 2g
+    pids_limit: 512
+    ulimits:
+      nofile: {soft: 655360, hard: 655360}
+    environment:
+      INDEXER_URL: https://wazuh.indexer:9200
+      INDEXER_USERNAME: admin
+      INDEXER_PASSWORD: "${WAZUH_ADMIN_PASSWORD:?Generate the private monitoring environment}"
+      FILEBEAT_SSL_VERIFICATION_MODE: full
+      SSL_CERTIFICATE_AUTHORITIES: /etc/ssl/root-ca.pem
+      SSL_CERTIFICATE: /etc/ssl/filebeat.pem
+      SSL_KEY: /etc/ssl/filebeat.key
+      API_USERNAME: wazuh-wui
+      API_PASSWORD: "${WAZUH_API_PASSWORD:?Generate the private monitoring environment}"
+    volumes:
+      - wazuh_api_configuration:/var/ossec/api/configuration
+      - wazuh_etc:/var/ossec/etc
+      - wazuh_logs:/var/ossec/logs
+      - wazuh_queue:/var/ossec/queue
+      - wazuh_var_multigroups:/var/ossec/var/multigroups
+      - wazuh_integrations:/var/ossec/integrations
+      - wazuh_active_response:/var/ossec/active-response/bin
+      - wazuh_agentless:/var/ossec/agentless
+      - wazuh_wodles:/var/ossec/wodles
+      - filebeat_etc:/etc/filebeat
+      - filebeat_var:/var/lib/filebeat
+      - <<: *readonly-bind
+        source: "${LAB_MONITORING_DIR:?Set LAB_MONITORING_DIR}/tls/root-ca.pem"
+        target: /etc/ssl/root-ca.pem
+      - <<: *readonly-bind
+        source: "${LAB_MONITORING_DIR:?Set LAB_MONITORING_DIR}/tls/wazuh.manager.pem"
+        target: /etc/ssl/filebeat.pem
+      - <<: *readonly-bind
+        source: "${LAB_MONITORING_DIR:?Set LAB_MONITORING_DIR}/tls/wazuh.manager-key.pem"
+        target: /etc/ssl/filebeat.key
+      - <<: *readonly-bind
+        source: ./wazuh/wazuh-manager.conf
+        target: /wazuh-config-mount/etc/ossec.conf
+      - <<: *readonly-bind
+        source: "${LAB_DATA_DIR:?Set LAB_DATA_DIR}"
+        target: /lab/data
+      - <<: *readonly-bind
+        source: "${LAB_FIM_PROBE_DIR:?Set LAB_FIM_PROBE_DIR}"
+        target: /lab/fim-probe
+
+  wazuh.indexer:
+    <<: *monitoring
+    image: wazuh/wazuh-indexer:4.14.9@sha256:615465315b560d974100ea55bbe67efa72afc6490ef563d4d1bef127df0e98f6
+    hostname: wazuh.indexer
+    cap_drop: [ALL]
+    cpus: 2.0
+    mem_limit: 4g
+    pids_limit: 512
+    environment:
+      OPENSEARCH_JAVA_OPTS: -Xms1g -Xmx1g
+    ulimits:
+      memlock: {soft: -1, hard: -1}
+      nofile: {soft: 65536, hard: 65536}
+    volumes:
+      - wazuh-indexer-data:/var/lib/wazuh-indexer
+      - <<: *readonly-bind
+        source: "${LAB_MONITORING_DIR:?Set LAB_MONITORING_DIR}/tls/root-ca.pem"
+        target: /usr/share/wazuh-indexer/config/certs/root-ca.pem
+      - <<: *readonly-bind
+        source: "${LAB_MONITORING_DIR:?Set LAB_MONITORING_DIR}/tls/wazuh.indexer.pem"
+        target: /usr/share/wazuh-indexer/config/certs/wazuh.indexer.pem
+      - <<: *readonly-bind
+        source: "${LAB_MONITORING_DIR:?Set LAB_MONITORING_DIR}/tls/wazuh.indexer-key.pem"
+        target: /usr/share/wazuh-indexer/config/certs/wazuh.indexer.key
+      - <<: *readonly-bind
+        source: "${LAB_MONITORING_DIR:?Set LAB_MONITORING_DIR}/tls/admin.pem"
+        target: /usr/share/wazuh-indexer/config/certs/admin.pem
+      - <<: *readonly-bind
+        source: "${LAB_MONITORING_DIR:?Set LAB_MONITORING_DIR}/tls/admin-key.pem"
+        target: /usr/share/wazuh-indexer/config/certs/admin-key.pem
+      - <<: *readonly-bind
+        source: ./wazuh/wazuh-indexer.yml
+        target: /usr/share/wazuh-indexer/config/opensearch.yml
+      - <<: *readonly-bind
+        source: "${LAB_MONITORING_DIR:?Set LAB_MONITORING_DIR}/config/internal_users.yml"
+        target: /usr/share/wazuh-indexer/config/opensearch-security/internal_users.yml
+
+  wazuh.dashboard:
+    <<: *monitoring
+    image: wazuh/wazuh-dashboard:4.14.9@sha256:e8e2340265feb6f61711d2ba460d04d2dea875ee46de26cd1832da2a3558a341
+    hostname: wazuh.dashboard
+    cap_drop: [ALL]
+    cpus: 1.0
+    mem_limit: 2g
+    pids_limit: 256
+    # Access from the Linux VM by container IP; internal-only networks do not publish ports.
+    environment:
+      INDEXER_USERNAME: admin
+      INDEXER_PASSWORD: "${WAZUH_ADMIN_PASSWORD:?Generate the private monitoring environment}"
+      WAZUH_API_URL: https://wazuh.manager
+      DASHBOARD_USERNAME: kibanaserver
+      DASHBOARD_PASSWORD: "${WAZUH_DASHBOARD_PASSWORD:?Generate the private monitoring environment}"
+      API_USERNAME: wazuh-wui
+      API_PASSWORD: "${WAZUH_API_PASSWORD:?Generate the private monitoring environment}"
+    depends_on: [wazuh.indexer, wazuh.manager]
+    volumes:
+      - wazuh-dashboard-config:/usr/share/wazuh-dashboard/data/wazuh/config
+      - wazuh-dashboard-custom:/usr/share/wazuh-dashboard/plugins/wazuh/public/assets/custom
+      - <<: *readonly-bind
+        source: "${LAB_MONITORING_DIR:?Set LAB_MONITORING_DIR}/tls/wazuh.dashboard.pem"
+        target: /usr/share/wazuh-dashboard/certs/wazuh-dashboard.pem
+      - <<: *readonly-bind
+        source: "${LAB_MONITORING_DIR:?Set LAB_MONITORING_DIR}/tls/wazuh.dashboard-key.pem"
+        target: /usr/share/wazuh-dashboard/certs/wazuh-dashboard-key.pem
+      - <<: *readonly-bind
+        source: "${LAB_MONITORING_DIR:?Set LAB_MONITORING_DIR}/tls/root-ca.pem"
+        target: /usr/share/wazuh-dashboard/certs/root-ca.pem
+      - <<: *readonly-bind
+        source: ./wazuh/wazuh-dashboard.yml
+        target: /usr/share/wazuh-dashboard/config/opensearch_dashboards.yml
+
+networks:
+  monitoring_net:
+    internal: true
+
+volumes:
+  wazuh_api_configuration:
+  wazuh_etc:
+  wazuh_logs:
+  wazuh_queue:
+  wazuh_var_multigroups:
+  wazuh_integrations:
+  wazuh_active_response:
+  wazuh_agentless:
+  wazuh_wodles:
+  filebeat_etc:
+  filebeat_var:
+  wazuh-indexer-data:
+  wazuh-dashboard-config:
+  wazuh-dashboard-custom:
