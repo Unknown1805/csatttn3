@@ -35,11 +35,7 @@ class Monitoring(unittest.TestCase):
             self.assertFalse(service.get("privileged", False))
             self.assertNotEqual(service.get("pid"), "host")
             self.assertIn("@sha256:", service["image"])
-        self.assertFalse(services["wazuh.manager"].get("ports"))
-        self.assertFalse(services["wazuh.indexer"].get("ports"))
-        ports = services["wazuh.dashboard"]["ports"]
-        self.assertEqual(len(ports), 1)
-        self.assertEqual((ports[0]["host_ip"], str(ports[0]["published"]), ports[0]["target"]), ("127.0.0.1", "8443", 5601))
+            self.assertFalse(service.get("ports"))
 
     def test_bind_mounts_are_readonly_and_no_ca_key_or_backup(self):
         for name, service in self.model["services"].items():
@@ -78,6 +74,8 @@ class Monitoring(unittest.TestCase):
             self.assertFalse((directory / "tls/ca.key").exists())
             runtime.openssl("verify", "-CAfile", directory / "tls/root-ca.pem",
                             "-verify_ip", "127.0.0.1", directory / "tls/wazuh.dashboard.pem")
+            runtime.openssl("verify", "-CAfile", directory / "tls/root-ca.pem",
+                            "-verify_hostname", "wazuh.dashboard", directory / "tls/wazuh.dashboard.pem")
             with self.assertRaises(subprocess.CalledProcessError):
                 runtime.openssl("verify", "-CAfile", directory / "tls/root-ca.pem",
                                 "-verify_hostname", "wrong.invalid", directory / "tls/wazuh.indexer.pem")

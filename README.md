@@ -53,14 +53,16 @@ Xem [Hướng dẫn làm việc nhóm](CONTRIBUTING.md) để biết cách cài 
 ## Trạng thái hiện tại
 
 - Đã triển khai nền lab bằng QEMU/KVM, Ubuntu 24.04.5 và Docker.
-- Workstation phục vụ đúng 15 file dữ liệu giả qua HTTP.
+- Đã kiểm thử Workstation phục vụ đúng 15 file dữ liệu giả qua HTTP.
 - Đã thử thu RAM và phân tích tiến trình kiểm chứng bằng Volatility.
 - Đã backup 15 file, tổng 600 B; kiểm tra kho không phát hiện lỗi.
 - Restore khớp 15/15 SHA-256; dữ liệu nguồn giữ nguyên.
 - Đã nghiệm thu backup/restore qua HTTPS/TLS 1.3 ngày 30/10/2026; CA sai và tên sai bị từ chối.
-- Lượt HTTPS vừa hoàn tất; cần dừng backup-server, unmount và tháo lại ổ backup trước phiên sự cố.
-- Chưa triển khai giám sát phát hiện, simulator và lượt sự cố.
-- Đã chuẩn bị cấu hình Wazuh 4.14.9 gồm Manager, Indexer và Dashboard; chưa nghiệm thu chạy dịch vụ và cảnh báo. Xem [Runbook giám sát](docs/runbook-giam-sat.md).
+- Sau lượt HTTPS ngày 30/10/2026 đã dừng backup-server, unmount và tháo ổ backup khỏi live/config; phải kiểm tra lại trước mỗi phiên sự cố.
+- Đã chạy Wazuh 4.14.9 gồm Manager, Indexer và Dashboard; đăng nhập admin qua HTTPS tại `https://wazuh.dashboard:5601` trong Ubuntu VM.
+- Đã nghiệm thu FIM cơ bản với năm ca vô hại: tạo, sửa, đổi tên, chỉ đọc trong 60 giây và xóa. Log và Dashboard khớp đủ năm cảnh báo; kiểm tra lại 15/15 file nền đạt.
+- Xem [Runbook giám sát](docs/runbook-giam-sat.md) và [Biên bản kiểm thử FIM](docs/kiem-thu/giam-sat-fim-stage4.md).
+- Chưa triển khai simulator và lượt sự cố.
 - Chưa nghiệm thu cô lập cho phiên sự cố, khôi phục môi trường sạch và RTO/RPO.
 
 Xem [Biên bản nghiệm thu nền lab](docs/kiem-thu/nghiem-thu-nen-lab.md).
