@@ -19,7 +19,7 @@
 | **Tài khoản người dùng** | `nvtp05112` (UID: 1000) | `kali` (UID: 1000) | Tách biệt hoàn toàn |
 | **Machine ID (`/etc/machine-id`)** | `915d7c13989443589b2a5965a79c0576` | `f8b08150ef8d4e1b926e29982e3fe680` | Hai hệ thống OS độc lập hoàn toàn |
 | **Địa chỉ MAC (`eth0`)** | `00:0c:29:88:24:54` | `00:0c:29:0c:4d:ec` | Hai card mạng ảo riêng biệt |
-| **Nguồn ảnh nền (Base Image)** | Máy ảo môi trường cũ | `kali-linux-2025.4-installer-amd64.iso` | Nguồn ISO gốc chuẩn từ hãng, cài mới hoàn toàn |
+| **Nguồn ảnh nền (Base Image)** | `kali-linux-2025.4-installer-amd64.iso` | `kali-linux-2025.4-installer-amd64.iso` | Nguồn ISO gốc chuẩn từ hãng, cài mới hoàn toàn |
 | **Phiên bản Restic** | `restic 0.19.1` | `restic 0.19.1 (compiled with go1.26.4 on linux/amd64)` | Đồng nhất phiên bản nhị phân |
 | **Hệ điều hành & Kernel** | Kali Rolling 2025.4 (Kernel 6.16.8+kali-amd64) | Kali Rolling 2025.4 (Kernel 6.16.8+kali-amd64) | Bản phân phối chuẩn tương thích |
 | **Thư mục làm việc** | `~/lab-restic-p3/` | `~/lab-p4-restore/` | Cấu trúc không gian làm việc mới tinh |
