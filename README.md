@@ -12,7 +12,7 @@ có biểu hiện giống ransomware.
 
 - Chỉ sử dụng dữ liệu giả phục vụ học tập.
 - Nền lab đã triển khai bằng Docker trong VM Ubuntu trên QEMU/KVM; đã kiểm chứng cô lập nền và Pause/Resume theo phạm vi A2, phải kiểm tra lại trước mỗi lượt sự cố.
-- Demo trên máy chính dùng simulator chỉ đổi tên đúng 15 file giả và tạo note ghi rõ mô phỏng; không mã hóa nội dung. Mã đã chuẩn bị cho Issue #33, chưa triển khai/nghiệm thu trong VM.
+- Demo trên máy chính dùng simulator chỉ đổi tên đúng 15 file giả và tạo note ghi rõ mô phỏng; không mã hóa nội dung. Đã nghiệm thu dry-run/apply trên bản sao thử trong VM ngày 03/11/2026 (Issue #33); chưa chạy lượt sự cố chính.
 - Linux.Encoder.1 là case nghiên cứu dự kiến trên máy phụ. Chưa xác minh file mẫu cụ thể hoặc SHA-256, chưa thực thi mẫu thật.
 - Chỉ thực nghiệm mẫu thật sau khi đã định danh mẫu, kiểm chứng cô lập, chuẩn bị giám sát, diễn tập nút dừng và thử phục hồi từ bản sao lưu độc lập. Không mang mẫu thật hoặc VM đã nhiễm sang máy chính để chạy demo.
 - Không phát triển chức năng tự lây lan hoặc đánh cắp dữ liệu; không tác động dữ liệu cá nhân.
@@ -62,8 +62,9 @@ Xem [Hướng dẫn làm việc nhóm](CONTRIBUTING.md) để biết cách cài 
 - Đã chạy Wazuh 4.14.9 gồm Manager, Indexer và Dashboard; đăng nhập admin qua HTTPS tại `https://wazuh.dashboard:5601` trong Ubuntu VM.
 - Đã nghiệm thu FIM cơ bản với năm ca vô hại: tạo, sửa, đổi tên, chỉ đọc trong 60 giây và xóa. Log và Dashboard khớp đủ năm cảnh báo; kiểm tra lại 15/15 file nền đạt.
 - Xem [Runbook giám sát](docs/runbook-giam-sat.md) và [Biên bản kiểm thử FIM](docs/kiem-thu/giam-sat-fim-stage4.md).
-- Đã chuẩn bị simulator rename-only cho Issue #33: mặc định dry-run, apply tường minh, kiểm tra dữ liệu giả và giới hạn container; chưa nghiệm thu runtime trong VM.
-- Lượt simulator đầu chỉ dùng bản sao mới dưới vùng fim-probe; chưa tác động sample_data của Workstation. Xem [Runbook simulator](docs/runbook-simulator.md).
+- Đã nghiệm thu simulator Issue #33 trên bản sao thử: dry-run không đổi dữ liệu; apply đổi tên 15/15 file sang .simlocked và tạo note mô phỏng, nội dung giữ nguyên; sample_data vẫn 15/15 nguyên vẹn.
+- Wazuh ghi nhận đủ tên cũ bị mất, tên mới và note xuất hiện; Dashboard hiển thị các cặp added/deleted đúng lượt thử. Đây là quan sát FIM, chưa phải phân loại hoặc ngăn chặn ransomware tự động.
+- Xem [Runbook simulator](docs/runbook-simulator.md) và [Biên bản kiểm thử simulator S1](docs/kiem-thu/simulator-s1.md).
 - Chưa thực hiện lượt sự cố chính.
 - Đã kiểm chứng A2 ngày 03/11/2026: bỏ NIC ngoài, khóa clipboard/truyền file SPICE và USB redirection; các đích TCP đã thử không có đường đi.
 - Đã diễn tập Pause/Resume, ghi nhận paused → running và kiểm tra lại Workstation HTTP 15/15, baseline 15/15, Dashboard HTTPS 302.

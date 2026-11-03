@@ -1,6 +1,6 @@
 # Simulator đổi tên dữ liệu giả — Issue #33
 
-Trạng thái: mã và cấu hình được chuẩn bị để kiểm tra. Chưa triển khai hoặc nghiệm thu simulator trong VM. Không dùng tài liệu này để kết luận đã thực hiện lượt sự cố.
+Trạng thái: đã nghiệm thu dry-run và apply trên bản sao thử trong VM ngày 03/11/2026. Nội dung 15 file thử và 15 file gốc giữ nguyên; FIM và Dashboard ghi nhận lượt đổi tên. Xem [biên bản S1](kiem-thu/simulator-s1.md). Đây chưa phải lượt sự cố chính hoặc kiểm thử phục hồi sau sự cố.
 
 ## 1. Luồng và giới hạn
 
@@ -85,6 +85,14 @@ Apply giữ container sau khi thoát để thu log/inspect chọn lọc; không 
 Ctrl+C trong phiên run hoặc `docker stop --timeout 10 TEN_CONTAINER` yêu cầu simulator dừng; chương trình giữ trạng thái đang dở. Trên Kali, `virsh suspend CSATTT-QEMU` dừng toàn VM theo [runbook cô lập](runbook-co-lap.md); không dùng script tự Resume của lượt diễn tập A2 để tiếp tục một VM đang nghi vấn.
 
 Không tự đổi tên ngược hoặc xóa note để tính là recovery. Giữ bản sao thử đã chạy cho đối chiếu; chưa áp dụng vào dữ liệu chính trước khi nghiệm thu các giới hạn và quan sát FIM. Lượt sự cố chính cần kế hoạch riêng về RAM/ảnh đĩa/log/PCAP, backup phù hợp, mốc mất khả dụng/phát hiện/phục hồi và môi trường sạch.
+
+## 7. Kết quả và khác biệt của lượt S1 đã chạy
+
+- Nguồn simulator là commit `513cd78f007220d843e9bee247d2049eeae848b0`. Không chạy trên `sample_data`; chỉ dùng bản sao mới đã được duyệt dưới `fim-probe`.
+- Để tránh nhập lệnh dài khi clipboard đã khóa, người vận hành dùng bộ điều phối trên ISO `CSATTT_APPLY`, SHA-256 `901bf90d2a71c239f137dafe54e263f735a294d2844f84d58729695c19f466d3`. Đây là artifact vận hành ngoài commit nguồn; vị trí và giới hạn xác minh được ghi trong biên bản S1.
+- Bộ điều phối tạo container nhưng chưa start, kiểm tra đúng image, mount, quyền, tài nguyên và mạng rồi mới start không attach; theo dõi exit/state có giới hạn thời gian. Container và dữ liệu sau apply được giữ lại. Các lệnh thủ công ở mục 4–5 mô tả cách chạy chương trình, không phải bản ghi nguyên văn của lượt S1.
+- Khi xác nhận baseline FIM, phải đối chiếu đủ 15 tên file khác nhau trong đúng thư mục thử, đọc cả log hiện tại và log JSON/JSON.gz lưu trữ liên quan. Không dùng tổng số hàng Dashboard để thay thế việc kiểm tra tên. Trong lượt này, baseline được tìm thấy ở log nén ngày 02/11.
+- Không chạy apply lại trên thư mục đã có `.simlocked`/note. Giữ chứng cứ, đối chiếu manifest và cập nhật biên bản; chưa đổi tên ngược hoặc gắn backup vào VM thử để coi là recovery.
 
 ## Tài liệu cơ chế
 

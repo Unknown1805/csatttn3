@@ -7,7 +7,8 @@ Chi tiết công việc và review được lưu trong Issue/Pull Request.
 
 ### Added
 
-- Chuẩn bị simulator rename-only Issue #33, mặc định dry-run và chỉ apply trên 15 file giả đúng mẫu; thêm profile incident dùng image sẵn có, helper tạo bản sao thử mới trong vùng FIM, kiểm thử giới hạn và runbook. Chưa triển khai/nghiệm thu trong VM.
+- Bổ sung simulator rename-only Issue #33, mặc định dry-run và chỉ apply trên 15 file giả đúng mẫu; profile incident dùng image sẵn có, helper tạo bản sao thử mới trong vùng FIM, kiểm thử giới hạn và runbook.
+- Bổ sung biên bản simulator S1 ngày 03/11/2026: dry-run không đổi file; apply đổi tên bản sao thử 15/15, giữ nguyên nội dung và dữ liệu gốc; FIM và Dashboard đã ghi nhận lượt thử. Operator đọc cả log JSON hiện tại và log lưu trữ nén để đối chiếu baseline trước apply.
 
 - Bổ sung runbook cô lập và biên bản A2 ngày 03/11/2026: cấu hình live/config, phép thử không có đường mạng ngoài, kiểm tra 15 file nền và Pause/Resume.
 
@@ -37,4 +38,4 @@ Chi tiết công việc và review được lưu trong Issue/Pull Request.
 - Ghi nhận backup 15 file / 600 B, kiểm tra kho thành công và restore khớp 15/15 SHA-256; 3.649 giây là thời gian bước restore, chưa phải RTO sự cố.
 - Lưu kết quả HTTP lịch sử và nghiệm thu HTTPS riêng; các bước cô lập sự cố và phục hồi môi trường sạch còn phải nghiệm thu.
 - Đồng bộ quy trình PR: Minh kiểm tra và merge PR của thành viên; PR của Minh được tự kiểm tra và merge, không bắt buộc Phong review.
-- Phân biệt demo có kiểm soát trên máy chính với nghiên cứu Linux.Encoder.1 dự kiến trên máy phụ; chưa triển khai simulator hoặc thực thi mẫu thật.
+- Phân biệt demo có kiểm soát trên máy chính với nghiên cứu Linux.Encoder.1 dự kiến trên máy phụ; simulator đã nghiệm thu riêng trên bản sao thử, chưa thực thi mẫu thật hoặc lượt sự cố chính.
