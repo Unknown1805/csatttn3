@@ -92,7 +92,9 @@ read -s -p "Nhập mật khẩu Restic: " RESTIC_PASSWORD
 export RESTIC_PASSWORD
 echo ""
 ```
-> *Ghi chú bảo mật:* Giá trị mật khẩu thực tế không được lưu trữ dưới dạng bản rõ (plaintext) trong bất kỳ file tài liệu, script hay commit nào trên kho mã nguồn.
+> *Ghi chú bảo mật & Xử lý sự cố lộ lọt:* 
+> - Chuỗi mật khẩu xuất hiện trong các commit thử nghiệm ban đầu là mật khẩu thực tế từng dùng cho môi trường diễn tập nội bộ P3/P4.
+> - Do lịch sử commit cũ trên Git vẫn có thể truy vết thông tin nhạy cảm, nhóm thực hiện ghi nhận sự cố lộ secret cục bộ và áp dụng quy trình xử lý: toàn bộ báo cáo từ bản sửa này trở đi chỉ mô tả quy trình nạp kín qua `read -s`; đối với các môi trường lab/production kế tiếp, kho dữ liệu bắt buộc phải được khởi tạo lại hoặc đổi khóa mã hóa mới (Key Rotation qua `restic key add` / `restic key rm`), thu hồi hoàn toàn mật khẩu cũ.
 
 ---
 
@@ -230,19 +232,13 @@ import subprocess
 import time
 from datetime import datetime, timezone
 import os
-import shutil
+import tempfile
 
 SNAP_ID = "3ad2e70fed735583ec674b13b56482d39aecc77f2a994d1b5c038adc2e4e60e8"
 REPO = "./repo_p4_copy"
-TARGET = "./restored_target"
+# Tạo thư mục đích cô lập hoàn toàn mới trong thư mục hiện tại, không xóa dữ liệu cũ
+TARGET = tempfile.mkdtemp(prefix="restored_target_", dir=".")
 MANIFEST = os.path.abspath("./manifest_p3.sha256")
-
-# 1. TIỀN ĐIỀU KIỆN: Dọn sạch và xác nhận thư mục đích trước khi đo
-if os.path.exists(TARGET):
-    shutil.rmtree(TARGET)
-os.makedirs(TARGET, exist_ok=True)
-if len(os.listdir(TARGET)) != 0:
-    raise RuntimeError(f"LỖI: Thư mục đích {TARGET} không rỗng trước khi đo!")
 
 print(f"=== BẮT ĐẦU QUY TRÌNH P4 (UTC): {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')} ===")
 t_all_start = time.perf_counter()
@@ -309,15 +305,15 @@ print("\nDanh sách chi tiết file (ls -la):\n", res_ls.stdout.strip())
 **Trích xuất log thực thi từ script (`p4_execution.log`):**
 
 ```text
-=== BẮT ĐẦU QUY TRÌNH P4 (UTC): 2026-11-02 17:15:55 UTC ===
-=== HOÀN TẤT QUY TRÌNH P4 (UTC): 2026-11-02 17:15:55 UTC ===
+=== BẮT ĐẦU QUY TRÌNH P4 (UTC): 2026-11-03 12:25:46 UTC ===
+=== HOÀN TẤT QUY TRÌNH P4 (UTC): 2026-11-03 12:25:47 UTC ===
 --------------------------------------------------
-Thư mục phục hồi thực tế: ./restored_target/data_source
-Thời lượng restore: 0.7472s
-Tổng thời lượng restore + xác minh: 0.7591s
+Thư mục phục hồi thực tế: /home/kali/lab-p4-restore/restored_target_dnj0h945/data_source
+Thời lượng restore: 1.4633s
+Tổng thời lượng restore + xác minh: 1.4743s
 --------------------------------------------------
 Log stdout của lệnh restore:
- restoring snapshot 3ad2e70f of [/home/nvtp05112/lab-restic-p3/data_source] at 2026-10-30 06:36:32.711446492 -0400 EDT by nvtp05112@nvtp05112 to ./restored_target
+ restoring snapshot 3ad2e70f of [/home/nvtp05112/lab-restic-p3/data_source] at 2026-10-30 06:36:32.711446492 -0400 EDT by nvtp05112@nvtp05112 to /home/kali/lab-p4-restore/restored_target_dnj0h945
 Summary: Restored 16 files/dirs (1.040 KiB) in 0:00
 
 Log kiểm tra SHA-256:
@@ -342,7 +338,7 @@ Số lượng file xác nhận: 15/15 (Khớp tuyệt đối)
 Danh sách chi tiết file (ls -la):
  total 68
 drwxrwxr-x 2 kali kali 4096 Oct 30 06:34 .
-drwxrwxr-x 3 kali kali 4096 Nov  2 12:15 ..
+drwx------ 3 kali kali 4096 Nov  3 07:25 ..
 -rw-rw-r-- 1 kali kali   71 Oct 30 06:34 file_01.txt
 -rw-rw-r-- 1 kali kali   71 Oct 30 06:34 file_02.txt
 -rw-rw-r-- 1 kali kali   71 Oct 30 06:34 file_03.txt
@@ -358,6 +354,7 @@ drwxrwxr-x 3 kali kali 4096 Nov  2 12:15 ..
 -rw-rw-r-- 1 kali kali   71 Oct 30 06:34 file_13.txt
 -rw-rw-r-- 1 kali kali   71 Oct 30 06:34 file_14.txt
 -rw-rw-r-- 1 kali kali   71 Oct 30 06:34 file_15.txt
+
 ```
 
 **Bảng tổng hợp chỉ số đo lường hiệu năng:**
