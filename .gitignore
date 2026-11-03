@@ -4,6 +4,7 @@
 !.env.example
 !/lab/.env.backup.example
 !/lab/.env.monitoring.example
+!/lab/.env.simulator.example
 /secrets/
 
 # Python environments and cache
