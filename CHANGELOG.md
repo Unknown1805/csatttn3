@@ -7,6 +7,8 @@ Chi tiết công việc và review được lưu trong Issue/Pull Request.
 
 ### Added
 
+- Bổ sung biên bản A3 ngày 04/11/2026: RAM ELF và Volatility đối chiếu PID 6309; PCAP HTTP control có nhãn; bản sao QCOW2 sau shutdown khớp SHA-256 nguồn trước/sau, đọc bằng thư viện pháp chứng ở chế độ chỉ đọc. Dữ liệu gốc và bản đổi tên S1 khớp 15/15; log S1 có đủ 31 cặp đường dẫn/sự kiện dự kiến. Chưa phải bộ chứng cứ hoặc RTO/RPO của lượt sự cố chính.
+
 - Bổ sung simulator rename-only Issue #33, mặc định dry-run và chỉ apply trên 15 file giả đúng mẫu; profile incident dùng image sẵn có, helper tạo bản sao thử mới trong vùng FIM, kiểm thử giới hạn và runbook.
 - Bổ sung biên bản simulator S1 ngày 03/11/2026: dry-run không đổi file; apply đổi tên bản sao thử 15/15, giữ nguyên nội dung và dữ liệu gốc; FIM và Dashboard đã ghi nhận lượt thử. Operator đọc cả log JSON hiện tại và log lưu trữ nén để đối chiếu baseline trước apply.
 

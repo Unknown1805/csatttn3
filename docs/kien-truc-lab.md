@@ -116,7 +116,7 @@ Các dấu đạt dưới đây áp dụng cho phép thử nền đã ghi nhận
 - [ ] Thử nghiệm truy cập âm tính tới repository/vùng chứng cứ trong lượt sự cố tích hợp; kiểm tra mount S1 không thay thế phép thử này.
 - [x] Đĩa backup vắng mặt ở live/config và guest trong lượt A2; vẫn phải kiểm tra lại trước phiên sự cố.
 - [x] Đã thu RAM và phân tích tiến trình thử nghiệm đã biết trong phép thử nền; chưa phải RAM của lượt sự cố.
-- [ ] Đọc được ảnh đĩa chứa dữ liệu mẫu.
+- [x] A3 ngày 04/11/2026 đọc được bản sao QCOW2 chứa 15 file gốc, 15 file đổi tên S1 và các gói log/PCAP; kiểm tra hash ảnh trước/sau phân tích khớp. Đây là kiểm chứng nền, chưa phải lượt sự cố chính.
 - [x] Backup/restore nền qua HTTPS đạt, đối chiếu 15/15 SHA-256; chưa phải phục hồi lab sau sự cố.
 - [ ] Lượt sự cố chính có bộ chứng cứ, timestamp, hash và các kết luận phân tích đối chiếu được.
 
@@ -127,7 +127,7 @@ Kiểm tra cú pháp Compose thành công chỉ xác nhận cấu hình được
 - VM chính sử dụng QEMU/KVM qua libvirt, tên CSATTT-QEMU.
 - Ubuntu 24.04.5 LTS; 6 vCPU, đã tăng RAM VM lên 12 GiB cho Wazuh.
 - Đĩa hệ điều hành vda đã tăng lên 70 GiB; root LV khoảng 68 GiB.
-- Đã thử thu RAM và phân tích được tiến trình kiểm chứng bằng Volatility.
+- A3 đã kiểm chứng RAM ELF bằng Volatility 3: PID 6309, COMM csattt-a3, UID 1000; thu PCAP HTTP control có nhãn; sao chép QCOW2 sau shutdown và đọc được chứng cứ qua QCOW2/LVM, không mount hoặc boot ảnh chứng cứ. Xem [biên bản A3](kiem-thu/thu-chung-cu-a3.md).
 - Đã backup 15 file, tổng 600 B; kiểm tra kho thành công; restore khớp 15/15 SHA-256.
 - Đã kết thúc lượt HTTPS và tháo ổ backup; trong lượt A2 ngày 03/11 đã kiểm tra lại đĩa vắng mặt ở live/config và guest. Phải kiểm tra lại trước mỗi phiên sự cố.
 - HTTPS GATE: OK; snapshot mới f54b7415, khôi phục snapshot gốc 4e9113aa khớp 15/15 SHA-256. Xem [biên bản HTTPS](kiem-thu/https-backup-p3.md).
@@ -136,4 +136,4 @@ Kiểm tra cú pháp Compose thành công chỉ xác nhận cấu hình được
 - Simulator Issue #33 đã nghiệm thu S1: dry-run giữ nguyên dữ liệu, apply đổi tên 15/15 file của bản sao thử và tạo note; byte/hash nội dung và 15 file gốc giữ nguyên. FIM ghi nhận đủ các đường dẫn dự kiến; Dashboard hiển thị added/deleted. Xem [biên bản S1](kiem-thu/simulator-s1.md) và [runbook simulator](runbook-simulator.md).
 - Kiểm tra lại giám sát/cô lập khi thêm simulator hoặc thay đổi cấu hình; chưa thực hiện lượt sự cố chính.
 
-Giám sát và cô lập nền đã có kết quả nghiệm thu theo phạm vi riêng. Trước lượt sự cố vẫn cần thử giới hạn simulator, chuẩn bị acquisition/ảnh đĩa và phương án khôi phục sạch cho lab tích hợp.
+Giám sát, cô lập và acquisition nền đã có kết quả nghiệm thu riêng. Trước lượt sự cố vẫn phải kiểm tra lại cô lập/giới hạn simulator và chuẩn bị khôi phục sạch; thu chứng cứ, phân tích và RTO/RPO của lượt sự cố phải có kết quả riêng.

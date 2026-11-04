@@ -65,6 +65,7 @@ Xem [Hướng dẫn làm việc nhóm](CONTRIBUTING.md) để biết cách cài 
 - Đã nghiệm thu simulator Issue #33 trên bản sao thử: dry-run không đổi dữ liệu; apply đổi tên 15/15 file sang .simlocked và tạo note mô phỏng, nội dung giữ nguyên; sample_data vẫn 15/15 nguyên vẹn.
 - Wazuh ghi nhận đủ tên cũ bị mất, tên mới và note xuất hiện; Dashboard hiển thị các cặp added/deleted đúng lượt thử. Đây là quan sát FIM, chưa phải phân loại hoặc ngăn chặn ransomware tự động.
 - Xem [Runbook simulator](docs/runbook-simulator.md) và [Biên bản kiểm thử simulator S1](docs/kiem-thu/simulator-s1.md).
+- Đã nghiệm thu thu/đọc chứng cứ nền A3 ngày 04/11/2026: RAM nhận PID 6309 (`csattt-a3`); PCAP kiểm chứng HTTP có nhãn; ảnh QCOW2 khớp hash nguồn trước/sau và đọc được dữ liệu, log S1. Xem [Biên bản A3](docs/kiem-thu/thu-chung-cu-a3.md).
 - Chưa thực hiện lượt sự cố chính.
 - Đã kiểm chứng A2 ngày 03/11/2026: bỏ NIC ngoài, khóa clipboard/truyền file SPICE và USB redirection; các đích TCP đã thử không có đường đi.
 - Đã diễn tập Pause/Resume, ghi nhận paused → running và kiểm tra lại Workstation HTTP 15/15, baseline 15/15, Dashboard HTTPS 302.
