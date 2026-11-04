@@ -50,6 +50,10 @@ có biểu hiện giống ransomware.
 
 Xem [Hướng dẫn làm việc nhóm](CONTRIBUTING.md) để biết cách cài công cụ, nhận việc, commit và gửi Pull Request.
 
+## Kiểm tra mã nguồn
+
+Workflow CI tự kiểm tra Python, Compose, unit test, SAST và secret cho PR vào develop/main và push hai nhánh đó. Xem [Runbook CI và review](docs/runbook-ci-review.md). Trạng thái chuẩn bị A4: đã có kiểm tra local; chưa ghi nhận run GitHub thành công. CI không thay cho nghiệm thu VM hoặc demo.
+
 ## Trạng thái hiện tại
 
 - Đã triển khai nền lab bằng QEMU/KVM, Ubuntu 24.04.5 và Docker.
