@@ -7,7 +7,9 @@ Chi tiết công việc và review được lưu trong Issue/Pull Request.
 
 ### Added
 
-- Bổ sung workflow CI cho PR/push develop/main: cú pháp/lint Python, Compose config, unittest, Bandit và Gitleaks; ghim phiên bản/SHA công cụ, quyền repository chỉ đọc và runbook review. Chưa ghi nhận workflow run GitHub ở bước chuẩn bị.
+- Chuẩn bị D1: tái sử dụng bộ copy/validator S1 để tạo dữ liệu thử và project Compose riêng; Workstation D1 và simulator trỏ cùng bản sao. Có preflight, manifest, kiểm thử và runbook một người vận hành; chưa khởi động container hoặc apply trong lab.
+
+- Bổ sung workflow CI cho PR/push develop/main: cú pháp/lint Python, Compose config, unittest, Bandit và Gitleaks; ghim phiên bản/SHA công cụ, quyền repository chỉ đọc và runbook review. Đã ghi nhận [CI GitHub thành công](https://github.com/Unknown1805/csatttn3/actions/runs/41804635402) ngày 04/11/2026 trên commit `95a005c67521fc8c76613727274b512a15ec075f`, cả hai job đạt; PR #39 đã merge vào develop.
 
 - Bổ sung biên bản A3 ngày 04/11/2026: RAM ELF và Volatility đối chiếu PID 6309; PCAP HTTP control có nhãn; bản sao QCOW2 sau shutdown khớp SHA-256 nguồn trước/sau, đọc bằng thư viện pháp chứng ở chế độ chỉ đọc. Dữ liệu gốc và bản đổi tên S1 khớp 15/15; log S1 có đủ 31 cặp đường dẫn/sự kiện dự kiến. Chưa phải bộ chứng cứ hoặc RTO/RPO của lượt sự cố chính.
 

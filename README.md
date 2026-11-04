@@ -52,7 +52,7 @@ Xem [Hướng dẫn làm việc nhóm](CONTRIBUTING.md) để biết cách cài 
 
 ## Kiểm tra mã nguồn
 
-Workflow CI tự kiểm tra Python, Compose, unit test, SAST và secret cho PR vào develop/main và push hai nhánh đó. Xem [Runbook CI và review](docs/runbook-ci-review.md). Trạng thái chuẩn bị A4: đã có kiểm tra local; chưa ghi nhận run GitHub thành công. CI không thay cho nghiệm thu VM hoặc demo.
+Workflow CI tự kiểm tra Python, Compose, unit test, SAST và secret cho PR vào develop/main và push hai nhánh đó. Xem [Runbook CI và review](docs/runbook-ci-review.md). A4 đã có [lượt CI GitHub thành công](https://github.com/Unknown1805/csatttn3/actions/runs/41804635402) ngày 04/11/2026 trên commit `95a005c67521fc8c76613727274b512a15ec075f`; hai job đều đạt và PR #39 đã merge vào develop. CI không thay cho nghiệm thu VM hoặc demo.
 
 ## Trạng thái hiện tại
 
@@ -70,6 +70,7 @@ Workflow CI tự kiểm tra Python, Compose, unit test, SAST và secret cho PR v
 - Wazuh ghi nhận đủ tên cũ bị mất, tên mới và note xuất hiện; Dashboard hiển thị các cặp added/deleted đúng lượt thử. Đây là quan sát FIM, chưa phải phân loại hoặc ngăn chặn ransomware tự động.
 - Xem [Runbook simulator](docs/runbook-simulator.md) và [Biên bản kiểm thử simulator S1](docs/kiem-thu/simulator-s1.md).
 - Đã nghiệm thu thu/đọc chứng cứ nền A3 ngày 04/11/2026: RAM nhận PID 6309 (`csattt-a3`); PCAP kiểm chứng HTTP có nhãn; ảnh QCOW2 khớp hash nguồn trước/sau và đọc được dữ liệu, log S1. Xem [Biên bản A3](docs/kiem-thu/thu-chung-cu-a3.md).
+- Đang chuẩn bị demo D1 một người vận hành: helper tạo bản sao và project riêng để HTTP/simulator dùng chung dữ liệu; chưa chạy lượt tích hợp. Xem [Runbook demo D1](docs/runbook-demo.md).
 - Chưa thực hiện lượt sự cố chính.
 - Đã kiểm chứng A2 ngày 03/11/2026: bỏ NIC ngoài, khóa clipboard/truyền file SPICE và USB redirection; các đích TCP đã thử không có đường đi.
 - Đã diễn tập Pause/Resume, ghi nhận paused → running và kiểm tra lại Workstation HTTP 15/15, baseline 15/15, Dashboard HTTPS 302.
