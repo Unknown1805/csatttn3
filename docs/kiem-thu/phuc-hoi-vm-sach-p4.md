@@ -92,9 +92,11 @@ read -s -p "Nhập mật khẩu Restic: " RESTIC_PASSWORD
 export RESTIC_PASSWORD
 echo ""
 ```
-> *Ghi chú bảo mật & Xử lý sự cố lộ lọt:* 
+> *Ghi chú bảo mật & Xử lý sự cố lộ lọt:*
 > - Chuỗi mật khẩu xuất hiện trong các commit thử nghiệm ban đầu là mật khẩu thực tế từng dùng cho môi trường diễn tập nội bộ P3/P4.
-> - Do lịch sử commit cũ trên Git vẫn có thể truy vết thông tin nhạy cảm, nhóm thực hiện ghi nhận sự cố lộ secret cục bộ và áp dụng quy trình xử lý: toàn bộ báo cáo từ bản sửa này trở đi chỉ mô tả quy trình nạp kín qua `read -s`; đối với các môi trường lab/production kế tiếp, kho dữ liệu bắt buộc phải được khởi tạo lại hoặc đổi khóa mã hóa mới (Key Rotation qua `restic key add` / `restic key rm`), thu hồi hoàn toàn mật khẩu cũ.
+> - Do lịch sử commit cũ trên Git vẫn còn lưu vết thông tin, nhóm thực hiện xác nhận trạng thái kho dữ liệu P3/P4 hiện tại đã bị lộ mật khẩu và tuyệt đối không sử dụng lại mật khẩu này cho bất kỳ lượt kiểm thử hay môi trường tiếp theo nào.
+> - Về mặt kiến trúc mật mã của Restic, các lệnh `restic key add` / `restic key rm` chỉ có tác dụng thay đổi mật khẩu/key file bảo vệ chung một khóa chủ (`master key`), không tạo ra khóa mã hóa dữ liệu mới. Do đó, để đảm bảo an toàn tuyệt đối khi cần khóa mã hóa mới, toàn bộ dữ liệu phải được khởi tạo trên một repository hoàn toàn mới.
+> - Gói chứng cứ và kho dữ liệu lịch sử của P3/P4 được bảo lưu nguyên trạng phục vụ nghiệm thu và đối chiếu kỹ thuật.
 
 ---
 
@@ -361,10 +363,10 @@ drwx------ 3 kali kali 4096 Nov  3 07:25 ..
 
 | Hạng mục đo lường | Thời điểm / Thời lượng | Đơn vị tính | Phương pháp xác thực |
 | :--- | :--- | :--- | :--- |
-| **Thời điểm bắt đầu** | `2026-11-02 17:15:55 UTC` | ISO-8601 UTC | `datetime.now(timezone.utc)` |
-| **Thời điểm kết thúc** | `2026-11-02 17:15:55 UTC` | ISO-8601 UTC | `datetime.now(timezone.utc)` |
-| **Lệnh Restore Restic** | `0.7472` | Giây (s) | `time.perf_counter()` bóc tách riêng (exit code 0) |
-| **Toàn trình (Restore + Verify)** | `0.7591` | Giây (s) | `time.perf_counter()` toàn bộ quy trình (assert 15/15) |
+| **Thời điểm bắt đầu** | `2026-11-03 12:25:46 UTC` | ISO-8601 UTC | `datetime.now(timezone.utc)` |
+| **Thời điểm kết thúc** | `2026-11-03 12:25:47 UTC` | ISO-8601 UTC | `datetime.now(timezone.utc)` |
+| **Lệnh Restore Restic** | `1.4633` | Giây (s) | `time.perf_counter()` bóc tách riêng (exit code 0) |
+| **Toàn trình (Restore + Verify)** | `1.4743` | Giây (s) | `time.perf_counter()` toàn bộ quy trình (assert 15/15) |
 | **Số lượng tệp phục hồi** | `15 / 15` | Tệp tin | Khớp tuyệt đối `manifest_p3.sha256` |
 
 ---
