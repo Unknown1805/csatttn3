@@ -30,7 +30,7 @@ Nguồn tham khảo: [GitHub Actions cho Python](https://docs.github.com/en/acti
 4. Nếu đỏ, mở job và bước đầu tiên thất bại; sửa trên cùng nhánh rồi commit/push. PR hiện tại sẽ có lượt kiểm tra mới.
 5. Trước merge, kiểm tra kết quả thuộc đúng commit mới nhất, đọc Files changed và xem phạm vi có đúng Issue không.
 
-Kết quả local không chứng minh workflow GitHub đã chạy. Bản chuẩn bị A4 ngày 04/11/2026 chưa có run URL; chỉ ghi nhận đạt A4 sau khi có ít nhất một lượt workflow thực tế thành công cùng commit SHA. Chạy lại trên bản chốt demo khi code/cấu hình thay đổi.
+Ngày 04/11/2026 đã đối chiếu [workflow run 41804635402](https://github.com/Unknown1805/csatttn3/actions/runs/41804635402) cho PR #39, commit `95a005c67521fc8c76613727274b512a15ec075f`: Python/Compose/tests/SAST đạt trong 17 giây; Secret scan đạt trong 8 giây. PR #39 đã merge thành `080c336600aa5b06557f9f2e57ce9828791fe587`. Đây là kết quả kiểm tra mã nguồn; chưa nghiệm thu demo tích hợp. Chạy lại trên bản chốt demo khi code/cấu hình thay đổi.
 
 ## 3. Chạy các kiểm tra trên máy làm code
 

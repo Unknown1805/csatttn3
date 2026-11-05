@@ -12,7 +12,7 @@ có biểu hiện giống ransomware.
 
 - Chỉ sử dụng dữ liệu giả phục vụ học tập.
 - Nền lab đã triển khai bằng Docker trong VM Ubuntu trên QEMU/KVM; đã kiểm chứng cô lập nền và Pause/Resume theo phạm vi A2, phải kiểm tra lại trước mỗi lượt sự cố.
-- Demo trên máy chính dùng simulator chỉ đổi tên đúng 15 file giả và tạo note ghi rõ mô phỏng; không mã hóa nội dung. Đã nghiệm thu dry-run/apply trên bản sao thử trong VM ngày 03/11/2026 (Issue #33); chưa chạy lượt sự cố chính.
+- Demo trên máy chính dùng simulator chỉ đổi tên đúng 15 file giả và tạo note ghi rõ mô phỏng; không mã hóa nội dung. Đã nghiệm thu dry-run/apply S1 ngày 03/11/2026 (Issue #33) và hoàn thành một lượt demo tích hợp D1 ngày 05/11/2026: khống chế sau 3/15 lần đổi tên, thu/phân tích chứng cứ và phục hồi HTTP/hash 15/15 trên VM recovery riêng.
 - Linux.Encoder.1 là case nghiên cứu dự kiến trên máy phụ. Chưa xác minh file mẫu cụ thể hoặc SHA-256, chưa thực thi mẫu thật.
 - Chỉ thực nghiệm mẫu thật sau khi đã định danh mẫu, kiểm chứng cô lập, chuẩn bị giám sát, diễn tập nút dừng và thử phục hồi từ bản sao lưu độc lập. Không mang mẫu thật hoặc VM đã nhiễm sang máy chính để chạy demo.
 - Không phát triển chức năng tự lây lan hoặc đánh cắp dữ liệu; không tác động dữ liệu cá nhân.
@@ -52,7 +52,7 @@ Xem [Hướng dẫn làm việc nhóm](CONTRIBUTING.md) để biết cách cài 
 
 ## Kiểm tra mã nguồn
 
-Workflow CI tự kiểm tra Python, Compose, unit test, SAST và secret cho PR vào develop/main và push hai nhánh đó. Xem [Runbook CI và review](docs/runbook-ci-review.md). Trạng thái chuẩn bị A4: đã có kiểm tra local; chưa ghi nhận run GitHub thành công. CI không thay cho nghiệm thu VM hoặc demo.
+Workflow CI tự kiểm tra Python, Compose, unit test, SAST và secret cho PR vào develop/main và push hai nhánh đó. Xem [Runbook CI và review](docs/runbook-ci-review.md). A4 đã có [lượt CI GitHub thành công](https://github.com/Unknown1805/csatttn3/actions/runs/41804635402) ngày 04/11/2026 trên commit `95a005c67521fc8c76613727274b512a15ec075f`; hai job đều đạt và PR #39 đã merge vào develop. CI không thay cho nghiệm thu VM hoặc demo.
 
 ## Trạng thái hiện tại
 
@@ -70,11 +70,13 @@ Workflow CI tự kiểm tra Python, Compose, unit test, SAST và secret cho PR v
 - Wazuh ghi nhận đủ tên cũ bị mất, tên mới và note xuất hiện; Dashboard hiển thị các cặp added/deleted đúng lượt thử. Đây là quan sát FIM, chưa phải phân loại hoặc ngăn chặn ransomware tự động.
 - Xem [Runbook simulator](docs/runbook-simulator.md) và [Biên bản kiểm thử simulator S1](docs/kiem-thu/simulator-s1.md).
 - Đã nghiệm thu thu/đọc chứng cứ nền A3 ngày 04/11/2026: RAM nhận PID 6309 (`csattt-a3`); PCAP kiểm chứng HTTP có nhãn; ảnh QCOW2 khớp hash nguồn trước/sau và đọc được dữ liệu, log S1. Xem [Biên bản A3](docs/kiem-thu/thu-chung-cu-a3.md).
-- Chưa thực hiện lượt sự cố chính.
+- Đã chạy trọn một lượt D1 ngày 05/11/2026: Workstation/simulator cùng dùng bản sao; 3 URL tên cũ trả 404, 12 URL còn lại trả 200; Wazuh có 7 sự kiện mới. Containment được điều phối sau ba lần đổi tên, chưa phải Wazuh tự ngăn chặn ransomware.
+- RAM D1 xác nhận PID 27840 và dòng lệnh simulator; log, PCAP HTTP kiểm tra sau cô lập và ảnh QCOW2 được kiểm tra hash/phân tích.
+- Phục hồi đúng snapshot Restic trên VM recovery từ checkpoint trước sự cố: dữ liệu 15 file/600 B, hash và HTTP 15/15; người vận hành đã kiểm tra manifest và trang file_01 trên Firefox. Xem [Biên bản D1](docs/kiem-thu/demo-tich-hop-d1.md) và [Runbook D1](docs/runbook-demo.md).
 - Đã kiểm chứng A2 ngày 03/11/2026: bỏ NIC ngoài, khóa clipboard/truyền file SPICE và USB redirection; các đích TCP đã thử không có đường đi.
 - Đã diễn tập Pause/Resume, ghi nhận paused → running và kiểm tra lại Workstation HTTP 15/15, baseline 15/15, Dashboard HTTPS 302.
 - Xem [Runbook cô lập](docs/runbook-co-lap.md) và [Biên bản A2](docs/kiem-thu/co-lap-vm-a2.md).
-- Chưa nghiệm thu acquisition/phân tích của lượt sự cố, phục hồi sạch và RTO/RPO cho lab tích hợp.
+- Đã ghi riêng bước restore 1.163 giây, script phục hồi 12.179 giây và khoảng gián đoạn quan sát có cả thời gian thao tác/thu chứng cứ. Chưa đánh giá mục tiêu RTO/RPO sản xuất hoặc nghiệm thu chạy lại toàn bộ demo từ đầu; giữ chứng cứ của lượt D1 đầu tiên.
 
 Xem [Biên bản nghiệm thu nền lab](docs/kiem-thu/nghiem-thu-nen-lab.md).
 
