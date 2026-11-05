@@ -1,71 +1,95 @@
 # Demo tích hợp D1 — một người vận hành, giữ màn hình SOC
 
-Người chuẩn bị, thao tác và review: Nhữ Duy Anh Minh. Trạng thái: đang chuẩn bị; chưa chạy hoặc nghiệm thu demo tích hợp. SOC là Wazuh hiện có trong VM; phối hợp nhiều máy/Tailscale để sau nếu còn thời gian.
+Người chuẩn bị, thao tác và review: Nhữ Duy Anh Minh. **Lượt D1 đầu tiên ngày 05/11/2026 đã đạt chuỗi chức năng tích hợp.** SOC là Wazuh trong VM; phối hợp nhiều máy/Tailscale để sau nếu còn thời gian. [Biên bản D1](kiem-thu/demo-tich-hop-d1.md) lưu kết quả và giới hạn; chạy lại trọn demo từ đầu chưa nghiệm thu.
 
-## 1. Luồng sẽ trình bày
+## 1. Luồng đã thực hiện
 
-1. Một Workstation D1 phục vụ 15 URL file giả: HTTP 200, đúng nội dung.
-2. Simulator đã nghiệm thu đổi tên đúng bản sao dữ liệu Workstation D1 đang đọc. Các URL tên cũ lần lượt trả 404; Wazuh quan sát tên cũ mất và tên mới xuất hiện.
-3. Người vận hành nhận cảnh báo, khống chế, bảo quản RAM/log/PCAP/ảnh đĩa theo kế hoạch acquisition của lượt chạy.
-4. Phục hồi snapshot đã chọn trên môi trường sạch; xác minh 15 tên, 15 SHA-256 và HTTP 15/15; ghi thời điểm phục hồi dịch vụ.
+1. Workstation D1 phục vụ 15 URL file giả: HTTP 200, đúng nội dung; FIM ghi nhận baseline 15 tên.
+2. Simulator đổi tên đúng bản sao mà Workstation D1 đang phục vụ. Sau ba lần đổi tên, bộ điều phối Pause simulator; ba URL tên cũ trả 404, 12 URL còn lại trả 200.
+3. Quan sát Wazuh: ba tên cũ mất, ba tên `.simlocked` xuất hiện và một note mô phỏng được tạo. Dashboard của đúng thư mục D1 có 22 hit gồm 15 baseline và 7 sự kiện mới.
+4. Thu RAM khi simulator còn Paused, giữ VM hoạt động để thu log và PCAP HTTP kiểm tra sau cô lập có nhãn. Sau đó kết thúc simulator, shutdown VM và chụp QCOW2 khi VM tắt.
+5. Đọc/phân tích bản sao chứng cứ; xác nhận tiến trình RAM, ba file đổi tên, 15 nội dung nguyên vẹn, FIM và HTTP 404/200.
+6. Trên recovery VM riêng, đọc bản sao repository chỉ đọc, restore đúng snapshot vào đích mới và phục vụ chính dữ liệu phục hồi qua HTTP: hash 15/15, HTTP 15/15. Người vận hành đã kiểm tra manifest và xem file_01 trên Firefox.
 
-Đây là diễn tập ảnh hưởng khả dụng bằng đổi tên, không phải mã hóa hoặc chạy ransomware thật. FIM quan sát thay đổi file; hiện chưa tự phân loại hay ngăn chặn ransomware.
+Đây là diễn tập ảnh hưởng khả dụng bằng đổi tên, không mã hóa hoặc chạy ransomware thật. FIM quan sát thay đổi file. Việc Pause được điều phối sau ba lần đổi tên, chưa phải Wazuh tự phân loại/ngăn chặn ransomware.
 
-## 2. Phần được giữ và phần tạo mới
+## 2. Thành phần và dữ liệu
 
 | Thành phần | D1 sử dụng |
 |---|---|
-| `runtime/sample_data` | Giữ nguyên 15 file gốc; không gắn vào container D1 |
-| Bản sao dưới `runtime/fim-probe/sim33-...` | Tạo mới cho từng bundle; Workstation D1 và simulator cùng gắn tại `/lab/data` |
-| Project `csatttn3` | Giữ nguyên Workstation nền, Wazuh và log/chứng cứ S1 |
-| Project `csatttn3-d1-...` | Project riêng cho Workstation D1 và simulator; mạng incident mới vẫn internal, không publish cổng |
-| Wazuh Manager | Nhìn bản sao qua bind chỉ đọc `/lab/fim-probe`; không cần đổi cấu hình hoặc agent mới |
-| Đĩa backup | Vẫn tháo khỏi VM sự cố; phục hồi dùng bản sao kho trên môi trường sạch |
+| `runtime/sample_data` | 15 file gốc được giữ nguyên |
+| Bản sao dưới `runtime/fim-probe/sim33-...` | Workstation D1 và simulator cùng gắn tại `/lab/data` |
+| Project `csatttn3` | Workstation nền và ba dịch vụ Wazuh hiện có |
+| Project `csatttn3-d1-8062e27c4236` | Workstation/simulator của lượt sự cố; mạng internal, không publish cổng |
+| Wazuh Manager | Quan sát bản sao qua bind chỉ đọc `/lab/fim-probe` |
+| `CSATTT-QEMU` | VM sự cố; không NIC ngoài/chia sẻ dữ liệu, backup gốc tháo rời |
+| `CSATTT-RECOVERY-D1` | Overlay từ checkpoint trước sự cố và bản sao đĩa backup riêng; 2 vCPU, 3 GiB RAM |
+| Restore worker | `network=none`, repository và mật khẩu bind chỉ đọc; chỉ đích `/restore` được ghi |
+| Project `csatttn3-rfinal-cc6f134b55ce` | Workstation phục vụ thư mục thực sự được Restic phục hồi trên mạng internal |
 
-Project mới chỉ tách tên container/network và vòng đời dịch vụ; vẫn dùng chung kernel Ubuntu. Nó không thay thế cô lập VM.
+Project Compose riêng tách tên/vòng đời dịch vụ, vẫn chung kernel Ubuntu. VM recovery dựa trên checkpoint đã kiểm tra trước sự cố, không phải hệ điều hành cài mới. Backup HTTPS được nghiệm thu nền; recovery D1 là đọc repository offline, không khởi động đường HTTPS backup.
 
-## 3. Checkpoint chuẩn bị hiện tại
+## 3. Chuẩn bị và điều kiện trước mỗi lượt
 
-Trên Kali kiểm tra nhánh sạch và dung lượng thật của ổ chứa qcow2. Một RAM dump hiện khoảng 12 GiB; ảnh đĩa lạnh A3 chiếm khoảng 15,3 GiB vật lý. Cần dự trù cả tăng trưởng VM, môi trường phục hồi và ít nhất 15 GiB dự phòng. Chỗ trống trong Ubuntu không thay thế chỗ trống trên ổ D.
+- Trên Kali, kiểm tra nhánh và dung lượng thật của ổ chứa QCOW2. RAM dump khoảng 12 GiB, bản sao QCOW2 khoảng 15,4 GiB vật lý; giữ ít nhất 15 GiB dự phòng và tính cả tăng trưởng overlay. Không suy ra dung lượng ổ D từ `df` bên trong Ubuntu.
+- Kiểm tra A2 ở live/config và trong guest: không NIC ngoài/default route; không chia sẻ thư mục/clipboard/truyền file/USB; backup vắng mặt; dịch vụ cần dùng hoạt động.
+- Chỉ dùng image đã có. Xuất commit đầy đủ và SHA-256 vào ISO chỉ đọc; không chia sẻ checkout thật với VM sự cố.
+- Chốt snapshot phục hồi bằng ID đầy đủ, kiểm tra kho/bản sao và diễn tập restore trước apply. Xác định nơi lưu chứng cứ, mốc đo và cách dừng.
+- Mỗi lượt tạo bundle, bản sao dữ liệu, project và thư mục restore mới. Không ghi đè kết quả cũ hoặc xóa marker một lần để ép chạy lại.
 
-Kiểm thử nguồn trước khi commit:
+Kiểm thử khi thay đổi mã nguồn:
 
 ```bash
 python3 -m unittest discover -s tests -p 'test_*.py' -v
 git diff --check
 ```
 
-Xuất đúng commit và manifest vào ISO chỉ đọc như các lượt trước; không mở mạng/clipboard hoặc chia sẻ checkout với guest. Đưa nguồn vào bundle triển khai mới trong `~/csattt-lab/deploy`; `COMMIT.txt` nằm cạnh thư mục `source`.
+Trong nguồn đã xuất vào Ubuntu, `python3 scripts/prepare_demo.py` kiểm tra VM/dữ liệu/dịch vụ, tái sử dụng helper S1 và tạo `copy.env`, `copy.json`, `demo.env`, `demo.json`, `source.sha256` ở ngoài thư mục nguồn. `LAB_DATA_DIR` và `LAB_SIM_DATA_DIR` trỏ cùng bản sao mới. Helper này chỉ chuẩn bị dữ liệu; không gọi Docker start/apply.
 
-Trong Ubuntu, sau khi A2 đã kiểm tra lại và ba dịch vụ Wazuh có sẵn đang chạy:
+`demo.json` có `prepared_only` phản ánh checkpoint chuẩn bị; kết quả apply và recovery được ghi trong biên bản/manifest riêng, không sửa metadata chuẩn bị để thay cho bằng chứng thực thi.
 
-```bash
-python3 scripts/prepare_demo.py
+## 4. Các gate vận hành đã dùng
+
+| Gate | Điều kiện đạt |
+|---|---|
+| Ready | Runtime image/mount/quyền/giới hạn/network đúng; HTTP 15/15; FIM đủ 15 tên; dry-run không đổi dữ liệu |
+| Checkpoint và recovery thử | Checkpoint khi VM tắt khớp hash; recovery dùng overlay và backup copy riêng; restore thử vào đích mới đạt hash/HTTP 15/15 |
+| Incident | Apply đúng một lần, Workstation/simulator cùng bản sao; Pause sau ba lần đổi tên; ba HTTP 404 và bảy sự kiện FIM đúng lượt |
+| RAM | Thu khi simulator còn sống/Paused; Volatility đối chiếu PID và dòng lệnh; có manifest |
+| Log và PCAP | Lưu JSON/FIM/log; PCAP có nhãn post-containment HTTP control, xác nhận 404 và 200 |
+| Disk | Kết thúc simulator, shutdown; giữ cả hai VM tắt khi copy; nguồn trước/sau/bản sao cùng SHA-256, QCOW2 check đạt |
+| Recovery | VM chính tắt; kiểm tra UUID/serial và cô lập recovery; repo mount chỉ đọc; snapshot đúng; đích mới; hash/HTTP 15/15 |
+
+Luôn dùng **PID của đúng lượt đang chạy**, đã đối chiếu container và guest; PID 27840 chỉ thuộc lượt D1 ngày 05/11. Không dùng lại PID lịch sử cho lượt mới. Thu RAM trước khi kết thúc tiến trình; log/PCAP thu xong trước shutdown. Root URL hoặc trạng thái healthy không thay cho kiểm tra đủ các URL file.
+
+Các gate ISO đã dùng được lưu ở workspace vận hành trên Kali, ngoài Git: `demo-d1-iso`, `demo-d1-ready`, `demo-d1-resume`, `demo-d1-incident`, `demo-d1-ram`, `demo-d1-evidence`, `demo-d1-disk`, `demo-d1-recovery-final` (hậu tố từng artifact ghi trong biên bản). Đây là các artifact cho lượt cụ thể, chưa phải một launcher tái lập mọi lượt từ checkout. Một số artifact có phụ thuộc module/đường dẫn của artifact trước; giữ nguyên bộ workspace và checkpoint hiện tại.
+
+## 5. Kết quả recovery và thời gian
+
+Lượt đã nghiệm thu có `result.json` tại:
+
+```text
+/home/csattt3/csattt-lab/runtime/recovery-final-20261105T131346Z-jwrfr735
 ```
 
-Helper kiểm tra Ubuntu VM/UUID, không có NIC phần cứng/default route, backup vắng mặt, guest còn ít nhất 15 GiB và trạng thái project Wazuh. Helper không thay đổi cấu hình libvirt; kiểm tra live/config, clipboard, USB và shared folder vẫn thực hiện từ Kali theo A2.
+Từ chính thư mục đó có thể đọc biên bản và kiểm tra manifest:
 
-Helper tái sử dụng bộ kiểm tra/copy S1, giữ nguyên dữ liệu nguồn và tạo:
+```bash
+cat result.json
+sha256sum -c SHA256SUMS
+```
 
-- `../copy.env`, `../copy.json`: nguồn và bản sao do helper S1 tạo.
-- `../demo.env`: cả `LAB_DATA_DIR` và `LAB_SIM_DATA_DIR` trỏ cùng bản sao mới.
-- `../demo.json`: project riêng, commit, đường dẫn FIM, UTC và SHA-256; trạng thái `prepared_only`.
-- `../source.sha256`: manifest 15 file giả, dùng lại để đối chiếu phục hồi.
+Mở URL `recovered_http_url` trong Firefox của Ubuntu recovery. IP container được ghi theo lượt, không dùng IP cũ để kết luận dịch vụ lượt mới. Dòng `Not Secure` của Workstation HTTP phù hợp dịch vụ dữ liệu giả trên mạng internal; đây không phải kênh HTTPS của kho backup.
 
-Các file trên nằm ngoài thư mục nguồn, mode 0600. Nếu đầu ra đã tồn tại hoặc dữ liệu không đúng mẫu, dừng và giữ nguyên để kiểm tra; không xóa/ghi đè để chạy lại. Helper không gọi start/create/up, không chạy dry-run hoặc apply.
+- Bước Restic restore: **1.163 giây**.
+- Script kiểm tra kho, restore, hash và HTTP: **12.179 giây**, không gồm khởi động VM.
+- Khoảng từ HTTP 404 quan sát đầu tiên đến đủ HTTP 15/15: **10537.530 giây**, gồm thời gian thu chứng cứ/chờ thao tác, không phải benchmark phục hồi lặp lại.
+- Tuổi snapshot tại mốc 404: **541945.401 giây**. Đây là tuổi bản sao, chưa phải RPO sản xuất được đo. Bộ 15 file giả không mất nội dung đã đối chiếu; không suy ra RPO = 0 cho dữ liệu khác.
 
-Đầu ra mong đợi: `D1 PREP: OK`, tên project `csatttn3-d1-...`, thư mục active khác sample_data và đường dẫn FIM tương ứng. Dừng tại checkpoint này, lưu kết quả rồi mới chuẩn bị khởi động Workstation D1.
+## 6. Chuẩn bị lượt trình bày lại
 
-## 4. Các checkpoint tiếp theo, chưa thực hiện
+Giữ VM chính tắt, không boot ảnh đĩa chứng cứ; giữ recovery và dữ liệu phục hồi để quan sát. Recovery overlay phụ thuộc checkpoint trước sự cố: không di chuyển/xóa/sửa checkpoint hoặc commit overlay vào base.
 
-1. Dùng `docker compose --project-name <project trong demo.json>` với `demo.env` và hai file Compose đã có. Đối chiếu config chỉ gồm Workstation/simulator, cùng mount bản sao; mạng internal, quyền và giới hạn giống S1. Chỉ dùng image có sẵn, không build/pull.
-2. Tạo nhưng chưa start container để kiểm tra image/mount/quyền/network thực tế. Start Workstation D1, kiểm tra riêng đủ 15 URL và hash. Kiểm tra FIM đã ghi nhận đủ 15 tên baseline trong đúng thư mục, đọc cả log hiện tại/lưu trữ khi cần.
-3. Dry-run simulator và đối chiếu cả nguồn/bản sao vẫn nguyên 15/15. Giữ container và log. Chưa apply khi một gate chưa đạt.
-4. Chốt snapshot đầy đủ, manifest, môi trường phục hồi, mốc đo và cách dừng; chuẩn bị capture trước apply. Simulator hiện chạy khoảng 15 giây rồi tự thoát: muốn thu tiến trình đang sống hoặc dừng giữa lượt phải sắp xếp trước. Không gọi kết quả RAM probe A3 là RAM của simulator.
-5. Apply đúng một lần, đo HTTP tên cũ bị lỗi và sự kiện FIM cùng lượt; ghi trạng thái khi khống chế. Root URL vẫn có thể trả 200 và container vẫn healthy dù 15 URL file bị 404.
-6. Thu/phân tích chứng cứ của lượt này, giữ trạng thái đã đổi tên. Không đổi tên ngược để gọi là phục hồi. PCAP chỉ có HTTP đối chứng phải ghi rõ, không gọi là lưu lượng C2 của simulator.
-7. Phục hồi trong môi trường sạch từ bản sao kho độc lập. Đích mới rỗng, đúng snapshot, 15 tên/hash và HTTP 15/15. Thời gian lệnh restore ghi riêng; thời gian phục hồi dịch vụ đo từ mốc ảnh hưởng đã thống nhất. RPO cần phiên bản/thời điểm dữ liệu và snapshot, không suy ra 0 chỉ từ hash khớp.
+Sau khi chốt biên bản và PR, chuẩn bị một lượt diễn tập mới với data/project/đích restore mới và chạy liên tục từ Ready đến Recovery. Giữ màn hình SOC, đo thời gian theo cùng mốc, ghi đầy đủ hash và thử cách reset mà không ghi đè chứng cứ. Chỉ sau khi lượt này đạt mới xác nhận khả năng chạy lại demo từ đầu.
 
-Chưa nghiệm thu checkpoint nào trên đây bằng chỉ kết quả unit test/Compose config. Mỗi lượt có UTC, commit/image, kết quả, SHA-256 và đường dẫn chứng cứ riêng; dữ liệu thô/secret ngoài Git.
-
-Nguồn cơ chế project riêng: [Docker Compose project name và độ ưu tiên của `-p`](https://docs.docker.com/compose/how-tos/project-name/). Tham chiếu vận hành: [cô lập A2](runbook-co-lap.md), [simulator S1](runbook-simulator.md), [HTTPS backup](runbook-https-backup.md).
+Tham chiếu: [cô lập A2](runbook-co-lap.md), [simulator S1](runbook-simulator.md), [HTTPS backup](runbook-https-backup.md), [biên bản D1](kiem-thu/demo-tich-hop-d1.md). Phần SOC nhiều máy/Tailscale giữ cho giai đoạn sau.

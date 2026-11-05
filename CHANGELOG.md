@@ -7,7 +7,9 @@ Chi tiết công việc và review được lưu trong Issue/Pull Request.
 
 ### Added
 
-- Chuẩn bị D1: tái sử dụng bộ copy/validator S1 để tạo dữ liệu thử và project Compose riêng; Workstation D1 và simulator trỏ cùng bản sao. Có preflight, manifest, kiểm thử và runbook một người vận hành; chưa khởi động container hoặc apply trong lab.
+- Bổ sung biên bản D1 ngày 05/11/2026: gián đoạn 3 URL, 7 sự kiện FIM, RAM PID 27840, log/PCAP có nhãn, QCOW2 khớp hash và phục hồi Restic trên VM riêng; hash/HTTP 15/15. Runbook ghi rõ nguồn chứng cứ, thời gian thực đo và phần chạy lại demo còn phải kiểm chứng.
+
+- Helper chuẩn bị D1 tái sử dụng bộ copy/validator S1 để tạo dữ liệu thử và project Compose riêng; Workstation D1 và simulator trỏ cùng bản sao. Helper chỉ chuẩn bị dữ liệu; các bước vận hành D1 bằng ISO đã chạy thành công trong lượt ngày 05/11/2026 và được ghi riêng trong biên bản.
 
 - Bổ sung workflow CI cho PR/push develop/main: cú pháp/lint Python, Compose config, unittest, Bandit và Gitleaks; ghim phiên bản/SHA công cụ, quyền repository chỉ đọc và runbook review. Đã ghi nhận [CI GitHub thành công](https://github.com/Unknown1805/csatttn3/actions/runs/41804635402) ngày 04/11/2026 trên commit `95a005c67521fc8c76613727274b512a15ec075f`, cả hai job đạt; PR #39 đã merge vào develop.
 
@@ -44,4 +46,4 @@ Chi tiết công việc và review được lưu trong Issue/Pull Request.
 - Ghi nhận backup 15 file / 600 B, kiểm tra kho thành công và restore khớp 15/15 SHA-256; 3.649 giây là thời gian bước restore, chưa phải RTO sự cố.
 - Lưu kết quả HTTP lịch sử và nghiệm thu HTTPS riêng; các bước cô lập sự cố và phục hồi môi trường sạch còn phải nghiệm thu.
 - Đồng bộ quy trình PR: Minh kiểm tra và merge PR của thành viên; PR của Minh được tự kiểm tra và merge, không bắt buộc Phong review.
-- Phân biệt demo có kiểm soát trên máy chính với nghiên cứu Linux.Encoder.1 dự kiến trên máy phụ; simulator đã nghiệm thu riêng trên bản sao thử, chưa thực thi mẫu thật hoặc lượt sự cố chính.
+- Phân biệt demo có kiểm soát trên máy chính với nghiên cứu Linux.Encoder.1 dự kiến trên máy phụ; đã nghiệm thu S1 và lượt tích hợp D1 bằng simulator đổi tên; chưa thực thi mẫu ransomware thật.

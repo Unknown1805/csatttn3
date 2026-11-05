@@ -1,7 +1,7 @@
 # Kiến trúc lab — Pháp chứng số và ứng cứu sự cố ransomware
 
 Liên quan: Issue #6.
-Trạng thái: Đã triển khai nền lab bằng QEMU/KVM và Docker; đã kiểm thử backup/restore qua HTTPS/TLS 1.3 và nghiệm thu FIM cơ bản bằng Wazuh với năm ca vô hại. Đã kiểm chứng cô lập nền và Pause/Resume theo phạm vi A2; đã nghiệm thu simulator trên bản sao thử (S1) ngày 03/11/2026. Chưa chạy lượt sự cố chính.
+Trạng thái: Đã triển khai nền lab bằng QEMU/KVM và Docker; đã kiểm thử backup/restore qua HTTPS/TLS 1.3 và nghiệm thu FIM cơ bản bằng Wazuh với năm ca vô hại. Đã kiểm chứng cô lập nền và Pause/Resume theo phạm vi A2; đã nghiệm thu simulator trên bản sao thử (S1) ngày 03/11/2026. Đã hoàn thành một lượt D1 ngày 05/11/2026: ảnh hưởng HTTP của ba file, containment theo điều phối, RAM/log/PCAP/ảnh đĩa và phục hồi hash/HTTP 15/15 trên VM recovery từ checkpoint trước sự cố. Chưa nghiệm thu chạy lại toàn bộ demo từ đầu.
 
 ## 1. Mục tiêu
 
@@ -41,7 +41,11 @@ Các thành phần chạy theo từng giai đoạn; không khởi động tất 
 | wazuh.indexer | Lưu và tìm kiếm cảnh báo | monitoring_net |
 | wazuh.dashboard | Hiển thị cảnh báo qua HTTPS trong Ubuntu VM | monitoring_net |
 
-Công cụ thu chứng cứ chạy dưới quyền người vận hành trong VM. Simulator không được nhận các quyền thu chứng cứ này.
+Công cụ thu log/PCAP chạy dưới quyền người vận hành trong VM; RAM và QCOW2 được thu từ Kali qua libvirt/công cụ đọc ảnh. Simulator không được nhận các quyền thu chứng cứ này.
+
+Trong lượt D1, Workstation và simulator nằm trong project riêng `csatttn3-d1-8062e27c4236`, cùng gắn bản sao dữ liệu. VM chính `CSATTT-QEMU` giữ Wazuh và đĩa hệ điều hành; backup gốc vẫn tháo rời. VM `CSATTT-RECOVERY-D1` dùng overlay của checkpoint trước sự cố và một bản sao đĩa backup độc lập. Đây là môi trường khôi phục từ checkpoint, không phải cài mới Ubuntu.
+
+Recovery D1 đọc repository được mount chỉ đọc bằng Restic worker có `network=none`, phục hồi vào thư mục mới rồi chạy Workstation HTTP riêng trên mạng internal. Đường backup HTTPS đã được kiểm thử nền; bước phục hồi offline D1 không đi qua HTTPS hoặc khởi động backup-server. [Biên bản D1](kiem-thu/demo-tich-hop-d1.md) ghi các phép kiểm tra và giới hạn.
 
 ## 3. Ranh giới cô lập
 
@@ -118,7 +122,8 @@ Các dấu đạt dưới đây áp dụng cho phép thử nền đã ghi nhận
 - [x] Đã thu RAM và phân tích tiến trình thử nghiệm đã biết trong phép thử nền; chưa phải RAM của lượt sự cố.
 - [x] A3 ngày 04/11/2026 đọc được bản sao QCOW2 chứa 15 file gốc, 15 file đổi tên S1 và các gói log/PCAP; kiểm tra hash ảnh trước/sau phân tích khớp. Đây là kiểm chứng nền, chưa phải lượt sự cố chính.
 - [x] Backup/restore nền qua HTTPS đạt, đối chiếu 15/15 SHA-256; chưa phải phục hồi lab sau sự cố.
-- [ ] Lượt sự cố chính có bộ chứng cứ, timestamp, hash và các kết luận phân tích đối chiếu được.
+- [x] Lượt D1 ngày 05/11/2026 có RAM, log/FIM, PCAP HTTP sau cô lập có nhãn và QCOW2; phân tích xác nhận ba file đổi tên, nội dung 15/15 giữ nguyên và phục hồi hash/HTTP 15/15 trên recovery VM.
+- [ ] Chạy lại trọn demo từ trạng thái chuẩn bị mới và nghiệm thu cách tái lập; chưa đánh giá mục tiêu RTO/RPO sản xuất.
 
 Kiểm tra cú pháp Compose thành công chỉ xác nhận cấu hình được công cụ chấp nhận; chưa chứng minh hệ thống chạy đúng hoặc cô lập đúng.
 
@@ -134,6 +139,6 @@ Kiểm tra cú pháp Compose thành công chỉ xác nhận cấu hình được
 - Wazuh đã nghiệm thu năm ca FIM cơ bản: tạo, sửa, đổi tên, chỉ đọc và xóa; đối chiếu đủ năm cảnh báo trên Dashboard, đối chứng chỉ đọc 60 giây và kiểm tra lại 15 file nền đạt. Xem [biên bản FIM](kiem-thu/giam-sat-fim-stage4.md).
 - A2 đã kiểm chứng cô lập nền, Pause/Resume với log host và kiểm tra dịch vụ sau Resume. Xem [biên bản A2](kiem-thu/co-lap-vm-a2.md) và [runbook](runbook-co-lap.md).
 - Simulator Issue #33 đã nghiệm thu S1: dry-run giữ nguyên dữ liệu, apply đổi tên 15/15 file của bản sao thử và tạo note; byte/hash nội dung và 15 file gốc giữ nguyên. FIM ghi nhận đủ các đường dẫn dự kiến; Dashboard hiển thị added/deleted. Xem [biên bản S1](kiem-thu/simulator-s1.md) và [runbook simulator](runbook-simulator.md).
-- Kiểm tra lại giám sát/cô lập khi thêm simulator hoặc thay đổi cấu hình; chưa thực hiện lượt sự cố chính.
+- D1 đã chạy thành công một lượt ngày 05/11/2026; xem [biên bản D1](kiem-thu/demo-tich-hop-d1.md). Tiếp tục kiểm tra lại giám sát/cô lập trước mỗi lượt; phần chạy lại trọn demo chưa nghiệm thu.
 
-Giám sát, cô lập và acquisition nền đã có kết quả nghiệm thu riêng. Trước lượt sự cố vẫn phải kiểm tra lại cô lập/giới hạn simulator và chuẩn bị khôi phục sạch; thu chứng cứ, phân tích và RTO/RPO của lượt sự cố phải có kết quả riêng.
+Giám sát, cô lập và acquisition nền có biên bản riêng; lượt D1 đã có kết quả tích hợp và số đo thời gian theo phạm vi ghi rõ. Trước lượt tiếp theo vẫn phải kiểm tra cô lập/giới hạn simulator, dung lượng và đích phục hồi mới; giữ bộ chứng cứ hiện tại và checkpoint mà recovery overlay đang phụ thuộc.
