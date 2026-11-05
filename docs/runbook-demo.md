@@ -1,6 +1,6 @@
 # Demo tích hợp D1 — một người vận hành, giữ màn hình SOC
 
-Người chuẩn bị, thao tác và review: Nhữ Duy Anh Minh. **Lượt D1 đầu tiên ngày 05/11/2026 đã đạt chuỗi chức năng tích hợp.** SOC là Wazuh trong VM; phối hợp nhiều máy/Tailscale để sau nếu còn thời gian. [Biên bản D1](kiem-thu/demo-tich-hop-d1.md) lưu kết quả và giới hạn; chạy lại trọn demo từ đầu chưa nghiệm thu.
+Người chuẩn bị, thao tác và review: Nhữ Duy Anh Minh. **Lượt D1 đầu tiên ngày 05/11/2026 đã đạt chuỗi chức năng tích hợp.** SOC là Wazuh trong VM; phối hợp nhiều máy/Tailscale để sau nếu còn thời gian. [Biên bản D1](kiem-thu/demo-tich-hop-d1.md) lưu kết quả và giới hạn; D2 cũng đã phục hồi hash/HTTP 15/15; người vận hành xác nhận manifest 28/28 và Firefox. [Biên bản D2](kiem-thu/demo-chay-lai-d2.md) ghi riêng việc còn chờ và khác biệt sau shutdown.
 
 ## 1. Luồng đã thực hiện
 
@@ -90,6 +90,12 @@ Mở URL `recovered_http_url` trong Firefox của Ubuntu recovery. IP container 
 
 Giữ VM chính tắt, không boot ảnh đĩa chứng cứ; giữ recovery và dữ liệu phục hồi để quan sát. Recovery overlay phụ thuộc checkpoint trước sự cố: không di chuyển/xóa/sửa checkpoint hoặc commit overlay vào base.
 
-Sau khi chốt biên bản và PR, chuẩn bị một lượt diễn tập mới với data/project/đích restore mới và chạy liên tục từ Ready đến Recovery. Giữ màn hình SOC, đo thời gian theo cùng mốc, ghi đầy đủ hash và thử cách reset mà không ghi đè chứng cứ. Chỉ sau khi lượt này đạt mới xác nhận khả năng chạy lại demo từ đầu.
+D2 đã lặp chuỗi chức năng trên bản chuẩn bị mới, đạt recovery và được người vận hành xác nhận manifest 28/28 cùng trang Firefox. Còn phải đóng gói thao tác ngắn cho một lượt mới, giữ data/project/đích restore riêng và thử liên tục từ Ready đến Recovery. Giữ màn hình SOC, đo thời gian theo cùng mốc, ghi đầy đủ hash và thử cách reset mà không ghi đè chứng cứ. Chỉ sau khi lượt này đạt mới xác nhận khả năng chạy lại demo từ đầu.
 
 Tham chiếu: [cô lập A2](runbook-co-lap.md), [simulator S1](runbook-simulator.md), [HTTPS backup](runbook-https-backup.md), [biên bản D1](kiem-thu/demo-tich-hop-d1.md). Phần SOC nhiều máy/Tailscale giữ cho giai đoạn sau.
+
+## 7. Điểm cần sửa trong thao tác dừng
+
+Trong D2, log runtime thu lúc simulator Pause ghi 3 lần đổi tên; đĩa sau shutdown có lần đổi tên thứ tư trước khi tiến trình nhận SIGTERM và thoát. Dữ liệu nội dung vẫn 15/15 nguyên vẹn. Không khẳng định shutdown mặc định bảo toàn trạng thái Pause hoặc sửa chứng cứ để bỏ lần đổi tên thứ tư. Xem mốc cụ thể trong [biên bản D2](kiem-thu/demo-chay-lai-d2.md).
+
+Sau khi thu RAM và log cần kết thúc đúng tác nhân khi còn đóng băng, rồi kiểm tra danh sách tên/hash trước shutdown; thao tác đó còn phải thử trên lượt mới trước khi đưa vào kịch bản biểu diễn. Không chạy lại apply trên D1/D2 hiện có.

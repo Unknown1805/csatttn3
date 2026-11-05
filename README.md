@@ -76,7 +76,8 @@ Workflow CI tự kiểm tra Python, Compose, unit test, SAST và secret cho PR v
 - Đã kiểm chứng A2 ngày 03/11/2026: bỏ NIC ngoài, khóa clipboard/truyền file SPICE và USB redirection; các đích TCP đã thử không có đường đi.
 - Đã diễn tập Pause/Resume, ghi nhận paused → running và kiểm tra lại Workstation HTTP 15/15, baseline 15/15, Dashboard HTTPS 302.
 - Xem [Runbook cô lập](docs/runbook-co-lap.md) và [Biên bản A2](docs/kiem-thu/co-lap-vm-a2.md).
-- Đã ghi riêng bước restore 1.163 giây, script phục hồi 12.179 giây và khoảng gián đoạn quan sát có cả thời gian thao tác/thu chứng cứ. Chưa đánh giá mục tiêu RTO/RPO sản xuất hoặc nghiệm thu chạy lại toàn bộ demo từ đầu; giữ chứng cứ của lượt D1 đầu tiên.
+- Đã chạy tiếp D2 từ bản chuẩn bị mới tới phục hồi hash/HTTP 15/15; script recovery 12.202 giây theo ảnh terminal. Runtime ghi 3 file đổi tên, đĩa sau shutdown có 4; toàn bộ nội dung giữ nguyên. Xem [Biên bản D2](docs/kiem-thu/demo-chay-lai-d2.md). Người vận hành đã xác nhận manifest recovery 28/28 và xem file_01 trên Firefox. Phần thao tác trình diễn gọn còn chờ nghiệm thu.
+- Các thời gian script/bước restore không phải RTO/RPO sản xuất. Giữ riêng chứng cứ D1/D2; chưa nghiệm thu launcher/reset cho buổi trình bày.
 
 Xem [Biên bản nghiệm thu nền lab](docs/kiem-thu/nghiem-thu-nen-lab.md).
 
