@@ -63,4 +63,4 @@ Raw đang dùng nằm trên D, dưới `/run/media/ndam/New Volume/CSATTT-Lab/ev
 
 Không xóa/di chuyển checkpoint chung `checkpoint-d1-20261105T060137Z-eorcagzm/disk.qcow2`: các overlay recovery và replay còn phụ thuộc. Không xóa marker apply để chạy lại lượt cũ. Raw/screenshot/secret giữ ngoài Git.
 
-Chuỗi chức năng demo tối thiểu D2 đã hoàn thành, gồm manifest và Firefox. Còn cần để biểu diễn gọn: gói quy trình/lệnh; kiểm thử việc kết thúc tác nhân không phát sinh đổi tên thêm và reset bằng lượt mới. SOC nhiều máy/Tailscale và phần mẫu thật không thuộc demo tối thiểu.
+Chuỗi chức năng demo tối thiểu D2 đã hoàn thành, gồm manifest và Firefox. Còn cần để biểu diễn gọn: gói quy trình/lệnh; kiểm thử tạo lại một lượt mới. Bước kết thúc tác nhân đã được xác nhận trong phép thử riêng ngày 12/11 (3 → 3 → 3, SHA-256 15/15). [Quy trình dừng và kiểm tra sau shutdown](../runbook-demo.md#7-dừng-simulator-và-kiểm-tra-sau-shutdown). SOC nhiều máy/Tailscale và phần mẫu thật không thuộc demo tối thiểu.

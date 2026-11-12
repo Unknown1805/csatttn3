@@ -7,7 +7,8 @@ Chi tiết công việc và review được lưu trong Issue/Pull Request.
 
 ### Added
 
-- Ghi nhận lượt D2 có đầy đủ chuỗi chức năng tới phục hồi hash/HTTP 15/15, script 12.202 giây theo ảnh người vận hành. Biên bản phân biệt runtime đổi tên 3 file với đĩa sau shutdown có 4 file; nội dung 15/15 nguyên vẹn. Người vận hành xác nhận manifest recovery 28/28 và Firefox; chưa nghiệm thu launcher/reset và thao tác kết thúc tác nhân cho lượt live mới.
+- Ghi nhận lượt D2 có đầy đủ chuỗi chức năng tới phục hồi hash/HTTP 15/15, script 12.202 giây theo ảnh người vận hành. Biên bản phân biệt runtime đổi tên 3 file với đĩa sau shutdown có 4 file; nội dung 15/15 nguyên vẹn. Người vận hành xác nhận manifest recovery 28/28 và Firefox; launcher và thao tác tạo lại một lượt live mới còn cần nghiệm thu.
+- Nghiệm thu bước dừng simulator trong VM riêng ngày 12/11/2026. Container thoát với mã 137, số file đổi tên giữ 3 → 3 → 3 qua shutdown và SHA-256 khớp 15/15.
 
 - Bổ sung biên bản D1 ngày 05/11/2026: gián đoạn 3 URL, 7 sự kiện FIM, RAM PID 27840, log/PCAP có nhãn, QCOW2 khớp hash và phục hồi Restic trên VM riêng; hash/HTTP 15/15. Runbook ghi rõ nguồn chứng cứ, thời gian thực đo và phần chạy lại demo còn phải kiểm chứng.
 

@@ -125,7 +125,8 @@ Các dấu đạt dưới đây áp dụng cho phép thử nền đã ghi nhận
 - [x] Lượt D1 ngày 05/11/2026 có RAM, log/FIM, PCAP HTTP sau cô lập có nhãn và QCOW2; phân tích xác nhận ba file đổi tên, nội dung 15/15 giữ nguyên và phục hồi hash/HTTP 15/15 trên recovery VM.
 - [x] D2 từ bản chuẩn bị mới đã qua runtime, RAM/log/PCAP/chuỗi đĩa và phục hồi hash/HTTP 15/15 theo ảnh terminal; điểm khác runtime/đĩa sau shutdown được ghi trong [biên bản D2](kiem-thu/demo-chay-lai-d2.md).
 - [x] Người vận hành xác nhận manifest recovery D2 28/28 và xem file_01 trên Firefox.
-- [ ] Kiểm thử launcher/reset/thao tác dừng cho buổi trình diễn; chưa đánh giá mục tiêu RTO/RPO sản xuất.
+- [x] Kiểm thử dừng simulator trên VM riêng và đối chiếu đĩa sau shutdown.
+- [ ] Kiểm thử launcher và tạo lại lượt trình diễn. Mục tiêu RTO/RPO sản xuất chưa được đánh giá.
 
 Kiểm tra cú pháp Compose thành công chỉ xác nhận cấu hình được công cụ chấp nhận; chưa chứng minh hệ thống chạy đúng hoặc cô lập đúng.
 
@@ -141,6 +142,6 @@ Kiểm tra cú pháp Compose thành công chỉ xác nhận cấu hình được
 - Wazuh đã nghiệm thu năm ca FIM cơ bản: tạo, sửa, đổi tên, chỉ đọc và xóa; đối chiếu đủ năm cảnh báo trên Dashboard, đối chứng chỉ đọc 60 giây và kiểm tra lại 15 file nền đạt. Xem [biên bản FIM](kiem-thu/giam-sat-fim-stage4.md).
 - A2 đã kiểm chứng cô lập nền, Pause/Resume với log host và kiểm tra dịch vụ sau Resume. Xem [biên bản A2](kiem-thu/co-lap-vm-a2.md) và [runbook](runbook-co-lap.md).
 - Simulator Issue #33 đã nghiệm thu S1: dry-run giữ nguyên dữ liệu, apply đổi tên 15/15 file của bản sao thử và tạo note; byte/hash nội dung và 15 file gốc giữ nguyên. FIM ghi nhận đủ các đường dẫn dự kiến; Dashboard hiển thị added/deleted. Xem [biên bản S1](kiem-thu/simulator-s1.md) và [runbook simulator](runbook-simulator.md).
-- D1 đã chạy thành công một lượt ngày 05/11/2026; xem [biên bản D1](kiem-thu/demo-tich-hop-d1.md). D2 đã lặp tới kết quả phục hồi, xem [biên bản D2](kiem-thu/demo-chay-lai-d2.md); phần launcher/reset và cách dừng chưa chốt. Tiếp tục kiểm tra lại giám sát/cô lập trước mỗi lượt.
+- D1 đã chạy thành công một lượt ngày 05/11/2026; xem [biên bản D1](kiem-thu/demo-tich-hop-d1.md). D2 đã lặp tới kết quả phục hồi, xem [biên bản D2](kiem-thu/demo-chay-lai-d2.md); bước dừng đã kiểm thử riêng ngày 12/11. Launcher và tạo lại một lượt live còn cần nghiệm thu. Tiếp tục kiểm tra lại giám sát/cô lập trước mỗi lượt.
 
 Giám sát, cô lập và acquisition nền có biên bản riêng; lượt D1 đã có kết quả tích hợp và số đo thời gian theo phạm vi ghi rõ. Trước lượt tiếp theo vẫn phải kiểm tra cô lập/giới hạn simulator, dung lượng và đích phục hồi mới; giữ bộ chứng cứ hiện tại và checkpoint mà recovery overlay đang phụ thuộc.
