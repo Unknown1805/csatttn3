@@ -94,8 +94,19 @@ D2 đã lặp chuỗi chức năng trên bản chuẩn bị mới, đạt recove
 
 Tham chiếu: [cô lập A2](runbook-co-lap.md), [simulator S1](runbook-simulator.md), [HTTPS backup](runbook-https-backup.md), [biên bản D1](kiem-thu/demo-tich-hop-d1.md). Phần SOC nhiều máy/Tailscale giữ cho giai đoạn sau.
 
-## 7. Điểm cần sửa trong thao tác dừng
+## 7. Dừng simulator và kiểm tra sau shutdown
 
 Trong D2, log runtime thu lúc simulator Pause ghi 3 lần đổi tên; đĩa sau shutdown có lần đổi tên thứ tư trước khi tiến trình nhận SIGTERM và thoát. Dữ liệu nội dung vẫn 15/15 nguyên vẹn. Không khẳng định shutdown mặc định bảo toàn trạng thái Pause hoặc sửa chứng cứ để bỏ lần đổi tên thứ tư. Xem mốc cụ thể trong [biên bản D2](kiem-thu/demo-chay-lai-d2.md).
 
-Sau khi thu RAM và log cần kết thúc đúng tác nhân khi còn đóng băng, rồi kiểm tra danh sách tên/hash trước shutdown; thao tác đó còn phải thử trên lượt mới trước khi đưa vào kịch bản biểu diễn. Không chạy lại apply trên D1/D2 hiện có.
+Phép thử ngày 12/11/2026 trong VM riêng `CSATTT-STOP-TEST` dùng Docker Engine 29.1.3 và 15 file giả. Sau Pause, người vận hành giữ VM chạy để ghi trạng thái, log và SHA-256. Bộ thử gửi SIGKILL tới đúng container đang Pause và xác nhận container thoát với mã 137. Số file đổi tên giữ nguyên ở cả ba mốc sau Pause, sau khi container thoát và sau shutdown (**3 → 3 → 3**). Đọc ổ ảo ở chế độ chỉ đọc xác nhận log Docker, manifest 7/7 và SHA-256 nội dung 15/15.
+
+Với một lượt mới, hoàn tất thu RAM, log và PCAP trước khi dừng. Trong Ubuntu, lấy ID đầy đủ của simulator từ biên bản đúng lượt. Kiểm tra ID thuộc project của lượt, service là simulator và trạng thái là Paused. Ghi danh sách tên cùng SHA-256 của bản sao thử trước khi chạy hai lệnh sau với `ID_SIM` là ID đã xác nhận.
+
+```bash
+sudo docker --host unix:///var/run/docker.sock kill --signal=KILL "$ID_SIM"
+sudo docker --host unix:///var/run/docker.sock inspect "$ID_SIM" --format 'Status={{.State.Status}} Running={{.State.Running}} Paused={{.State.Paused}} ExitCode={{.State.ExitCode}}'
+```
+
+Chỉ shutdown khi thấy `Status=exited Running=false Paused=false ExitCode=137` và đối chiếu lại tên, SHA-256 cùng log đều khớp trước khi dừng. Sau shutdown, giữ VM tắt và đối chiếu ảnh đĩa với kết quả runtime của đúng lượt.
+
+Phép thử xác nhận bước dừng riêng. Launcher, thao tác tạo lượt mới và diễn tập live từ Ready đến Recovery với bước dừng này vẫn cần nghiệm thu.
