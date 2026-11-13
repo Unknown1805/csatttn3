@@ -16,6 +16,6 @@
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | 1. Tạo file | Tạo mới một file giả trong thư mục thử riêng | Cảnh báo tệp mới được tạo | Chưa thực hiện | Chưa thực hiện | Chưa thực hiện | Chưa thực hiện | Chưa thực hiện |
 | 2. Sửa nội dung | Thay đổi nội dung của file giả | Cảnh báo tệp bị sửa đổi nội dung | Chưa thực hiện | Chưa thực hiện | Chưa thực hiện | Chưa thực hiện | Chưa thực hiện |
-| 3. Đổi tên | Đổi tên file giả thành tên khác | Wazuh ghi nhận deleted | Chưa thực hiện | Chưa thực hiện | Chưa thực hiện | Chưa thực hiện | Chưa thực hiện |
+| 3. Đổi tên | Đổi tên file giả thành tên khác | Wazuh ghi nhận deleted ở đường dẫn cũ và added ở đường dẫn mới. | Chưa thực hiện | Chưa thực hiện | Chưa thực hiện | Chưa thực hiện | Chưa thực hiện |
 | 4. Xóa file | Xóa file giả khỏi thư mục thử riêng | Cảnh báo tệp bị xóa | Chưa thực hiện | Chưa thực hiện | Chưa thực hiện | Chưa thực hiện | Chưa thực hiện |
 | 5. Đối chứng | Đọc file (ví dụ: dùng lệnh cat/less), không thay đổi nội dung | Không sinh ra cảnh báo thay đổi file | Chưa thực hiện | Chưa thực hiện | Chưa thực hiện | Chưa thực hiện | Chưa thực hiện |
