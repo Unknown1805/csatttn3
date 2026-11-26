@@ -12,7 +12,7 @@ có biểu hiện giống ransomware.
 
 - Chỉ sử dụng dữ liệu giả phục vụ học tập.
 - Nền lab đã triển khai bằng Docker trong VM Ubuntu trên QEMU/KVM; đã kiểm chứng cô lập nền và Pause/Resume theo phạm vi A2, phải kiểm tra lại trước mỗi lượt sự cố.
-- Demo trên máy chính dùng simulator chỉ đổi tên đúng 15 file giả và tạo note ghi rõ mô phỏng; không mã hóa nội dung. Đã nghiệm thu dry-run/apply S1 ngày 03/11/2026 (Issue #33) và hoàn thành một lượt demo tích hợp D1 ngày 05/11/2026: khống chế sau 3/15 lần đổi tên, thu/phân tích chứng cứ và phục hồi HTTP/hash 15/15 trên VM recovery riêng.
+- Demo trên máy chính dùng simulator chỉ đổi tên trong bộ 15 file giả và tạo note ghi rõ mô phỏng; không mã hóa nội dung. Đã nghiệm thu dry-run/apply S1 ngày 03/11/2026 (Issue #33) và hoàn thành một lượt demo tích hợp D1 ngày 05/11/2026: khống chế sau 3/15 lần đổi tên, thu/phân tích chứng cứ và phục hồi HTTP/hash 15/15 trên VM recovery riêng.
 - Linux.Encoder.1 là case nghiên cứu dự kiến trên máy phụ. Chưa xác minh file mẫu cụ thể hoặc SHA-256, chưa thực thi mẫu thật.
 - Chỉ thực nghiệm mẫu thật sau khi đã định danh mẫu, kiểm chứng cô lập, chuẩn bị giám sát, diễn tập nút dừng và thử phục hồi từ bản sao lưu độc lập. Không mang mẫu thật hoặc VM đã nhiễm sang máy chính để chạy demo.
 - Không phát triển chức năng tự lây lan hoặc đánh cắp dữ liệu; không tác động dữ liệu cá nhân.
@@ -77,7 +77,8 @@ Workflow CI tự kiểm tra Python, Compose, unit test, SAST và secret cho PR v
 - Đã diễn tập Pause/Resume, ghi nhận paused → running và kiểm tra lại Workstation HTTP 15/15, baseline 15/15, Dashboard HTTPS 302.
 - Xem [Runbook cô lập](docs/runbook-co-lap.md) và [Biên bản A2](docs/kiem-thu/co-lap-vm-a2.md).
 - Đã chạy tiếp D2 từ bản chuẩn bị mới tới phục hồi hash/HTTP 15/15; script recovery 12.202 giây theo ảnh terminal. Runtime ghi 3 file đổi tên, đĩa sau shutdown có 4; toàn bộ nội dung giữ nguyên. Xem [Biên bản D2](docs/kiem-thu/demo-chay-lai-d2.md). Người vận hành đã xác nhận manifest recovery 28/28 và xem file_01 trên Firefox. Phần thao tác trình diễn gọn còn chờ nghiệm thu.
-- Các thời gian script/bước restore không phải RTO/RPO sản xuất. Giữ riêng chứng cứ D1/D2; chưa nghiệm thu launcher/reset cho buổi trình bày.
+- D4 ngày 13/11/2026: bộ điều phối tạm dừng simulator sau 3 lần đổi tên; HTTP trả 3×404 và 12×200, Wazuh FIM xác nhận 7 đường dẫn dự kiến, nội dung 15/15 file không đổi. Volatility xác nhận PID 12819 và dòng lệnh simulator trong RAM D4. Kết thúc tác nhân và phục hồi được ghi nhận ở hai lượt riêng STOP-TEST và D2. Xem [Biên bản D4](docs/kiem-thu/demo-live-d4.md).
+- Các thời gian script/bước restore không phải RTO/RPO sản xuất. Giữ riêng chứng cứ theo từng lượt; chưa nghiệm thu launcher/reset cho buổi trình bày.
 
 Xem [Biên bản nghiệm thu nền lab](docs/kiem-thu/nghiem-thu-nen-lab.md).
 

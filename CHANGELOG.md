@@ -7,6 +7,7 @@ Chi tiết công việc và review được lưu trong Issue/Pull Request.
 
 ### Added
 
+- Bổ sung [biên bản D4](docs/kiem-thu/demo-live-d4.md) cho Issue #40: tạm dừng sau 3 lần đổi tên, HTTP 3×404 / 12×200, FIM xác nhận 7 đường dẫn, nội dung 15/15 giữ nguyên. Manifest RAM D4 khớp 9/9; Volatility xác nhận PID 12819 và dòng lệnh simulator. Không gộp kết quả STOP-TEST hoặc phục hồi D2 thành kết quả của D4.
 - Ghi nhận lượt D2 có đầy đủ chuỗi chức năng tới phục hồi hash/HTTP 15/15, script 12.202 giây theo ảnh người vận hành. Biên bản phân biệt runtime đổi tên 3 file với đĩa sau shutdown có 4 file; nội dung 15/15 nguyên vẹn. Người vận hành xác nhận manifest recovery 28/28 và Firefox; launcher và thao tác tạo lại một lượt live mới còn cần nghiệm thu.
 - Nghiệm thu bước dừng simulator trong VM riêng ngày 12/11/2026. Container thoát với mã 137, số file đổi tên giữ 3 → 3 → 3 qua shutdown và SHA-256 khớp 15/15.
 
