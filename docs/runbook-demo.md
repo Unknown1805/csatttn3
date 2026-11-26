@@ -46,6 +46,8 @@ git diff --check
 
 Trong nguồn đã xuất vào Ubuntu, `python3 scripts/prepare_demo.py` kiểm tra VM/dữ liệu/dịch vụ, tái sử dụng helper S1 và tạo `copy.env`, `copy.json`, `demo.env`, `demo.json`, `source.sha256` ở ngoài thư mục nguồn. `LAB_DATA_DIR` và `LAB_SIM_DATA_DIR` trỏ cùng bản sao mới. Helper này chỉ chuẩn bị dữ liệu; không gọi Docker start/apply.
 
+Với VM sự cố mới, lấy UUID của **VM đã được xác nhận trên Kali** bằng `virsh --readonly -c qemu:///system domuuid TEN_VM`, rồi trong Ubuntu chạy `python3 scripts/prepare_demo.py --vm-uuid UUID_DA_XAC_NHAN`. Không dùng UUID do guest tự báo làm giá trị kỳ vọng. Nếu không truyền tùy chọn, helper vẫn yêu cầu UUID của VM D1 gốc. Kiểm tra cô lập, ổ backup và dịch vụ vẫn áp dụng cho cả hai cách chạy.
+
 `demo.json` có `prepared_only` phản ánh checkpoint chuẩn bị; kết quả apply và recovery được ghi trong biên bản/manifest riêng, không sửa metadata chuẩn bị để thay cho bằng chứng thực thi.
 
 ## 4. Các gate vận hành đã dùng

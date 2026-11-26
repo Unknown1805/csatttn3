@@ -13,6 +13,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'scripts'))
 import prepare_demo as demo
 
+NEW_VM_UUID = '0b8c9f5a-6d01-44d4-83d9-db5d9e0ce1bc'
+
 
 class DemoPreparation(unittest.TestCase):
     def setUp(self):
@@ -119,10 +121,10 @@ class DemoPreparation(unittest.TestCase):
             demo.prepare(self.data, self.probe, self.bundle, 'HEAD')
         self.assertFalse(any(self.bundle.iterdir()))
 
-    def preflight(self, fault=None):
+    def preflight(self, fault=None, *, guest_uuid=demo.VM_UUID, expected_uuid=None):
         def output(arguments, **kwargs):
             if 'product_uuid' in arguments[-1]:
-                return 'wrong' if fault == 'uuid' else demo.VM_UUID
+                return 'wrong' if fault == 'uuid' else guest_uuid
             if arguments[0] == 'ip':
                 return '[{"dst":"default"}]' if fault == 'route' else '[]'
             if 'ps' in arguments:
@@ -143,7 +145,10 @@ class DemoPreparation(unittest.TestCase):
                 patch.object(demo.shutil, 'disk_usage', return_value=SimpleNamespace(free=(1 if fault == 'low_disk' else 40) * 1024**3)), \
                 patch.object(demo.subprocess, 'check_output', side_effect=output), \
                 patch.object(demo.subprocess, 'run', return_value=SimpleNamespace(returncode=0 if fault == 'mounted' else 1)) as run:
-            demo.guest_preflight(self.root)
+            if expected_uuid is None:
+                demo.guest_preflight(self.root)
+            else:
+                demo.guest_preflight(self.root, expected_uuid)
         self.assertEqual(run.call_args.args[0], ['findmnt', '-rn', '-M', '/mnt/csattt-backup'])
 
     def test_preflight_accepts_isolated_guest_and_never_starts_services(self):
@@ -153,6 +158,28 @@ class DemoPreparation(unittest.TestCase):
         for fault in ('uuid', 'route', 'nic', 'backup_disk', 'mounted', 'backup_service', 'no_wazuh', 'low_disk'):
             with self.subTest(fault=fault), self.assertRaises(RuntimeError):
                 self.preflight(fault)
+
+    def test_new_guest_requires_matching_explicit_uuid(self):
+        with self.assertRaisesRegex(RuntimeError, 'Wrong VM UUID'):
+            self.preflight(guest_uuid=NEW_VM_UUID)
+        self.preflight(guest_uuid=NEW_VM_UUID, expected_uuid=NEW_VM_UUID.upper())
+
+    def test_explicit_uuid_does_not_skip_network_or_backup_checks(self):
+        for fault in ('route', 'nic', 'backup_disk', 'mounted', 'backup_service'):
+            with self.subTest(fault=fault), self.assertRaises(RuntimeError):
+                self.preflight(fault, guest_uuid=NEW_VM_UUID, expected_uuid=NEW_VM_UUID)
+
+    def test_malformed_expected_uuid_stops_before_guest_checks(self):
+        with patch.object(demo, 'ensure_vm') as ensure, self.assertRaisesRegex(RuntimeError, 'full VM UUID'):
+            demo.guest_preflight(self.root, 'not-a-uuid')
+        ensure.assert_not_called()
+
+    def test_cli_passes_explicit_uuid_to_preflight(self):
+        with patch.object(sys, 'argv', ['prepare_demo.py', '--vm-uuid', NEW_VM_UUID]), \
+                patch.object(demo, 'guest_preflight', side_effect=RuntimeError('stop')) as preflight, \
+                self.assertRaisesRegex(RuntimeError, 'stop'):
+            demo.main()
+        preflight.assert_called_once_with(Path.home() / 'csattt-lab', NEW_VM_UUID)
 
 
 if __name__ == '__main__':
