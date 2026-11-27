@@ -52,9 +52,9 @@ Toàn bộ bí mật, chứng chỉ, ảnh đĩa và container image không đư
 
 ### 3.2. Điều kiện dừng quy trình ngay lập tức (Fail-Fast)
 Người vận hành phải dừng quy trình ngay lập tức và báo cáo lại nếu phát hiện bất kỳ điều kiện nào dưới đây:
-- **Sai định danh lưu trữ / môi trường:** Sai UUID phân vùng sao lưu, không phải hệ thống tệp `ext4` chế độ `rw`, hoặc chạy sai user (không phải UID/GID `1000`).
-- **Sai kho / Snapshot / Chứng chỉ:** Không mở được repository, không tìm thấy đúng Full Snapshot ID (64 ký tự) đã xác nhận, chứng chỉ `server.crt` không khớp `ca.crt` hoặc thiếu SAN `DNS:backup-server`.
-- **Thiếu bí mật hoặc sai phân quyền:** Thiếu bất kỳ tệp secret nào hoặc quyền truy cập không đúng chuẩn `0600` (tệp) / `0700` (thư mục).
+- **Sai định danh hoặc cô lập:** Sai UUID VM, serial đĩa hoặc UUID ext4; có NIC ngoài/default route; hoặc đĩa/kho không chỉ đọc trong luồng offline.
+- **Sai kho / snapshot:** Không mở được kho hoặc không tìm thấy đúng ID snapshot đủ 64 ký tự. Nếu chọn luồng HTTPS, thêm kiểm tra CA, SAN `DNS:backup-server` và TLS 1.3 theo runbook HTTPS.
+- **Thiếu tệp xác thực hoặc sai quyền:** Dừng nếu không đọc được `repository-password` hợp lệ; chỉ yêu cầu bộ xác thực HTTP/TLS trong luồng HTTPS. Không in hoặc tạo lại mật khẩu.
 - **Lỗi toàn vẹn dữ liệu (Hash Mismatch):** Sai lệch mã băm SHA-256 của gói chuyển giao, lệnh `restic check --read-data` báo lỗi, dữ liệu sau restore không đủ 15 tệp hoặc lệch mã băm so với manifest gốc.
 - **Đích phục hồi không hợp lệ:** Thư mục đích `<LAB_RESTORE_DIR>` đã tồn tại dữ liệu trước đó hoặc là symlink.
 
