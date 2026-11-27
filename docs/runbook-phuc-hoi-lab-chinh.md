@@ -31,11 +31,11 @@ Toàn bộ bí mật, chứng chỉ, ảnh đĩa và container image không đư
 
 | Nhóm thành phần | Tên tệp / Đối tượng bàn giao | Quy cách lưu trữ & Phân quyền trên VM sạch | Mục đích sử dụng |
 | :--- | :--- | :--- | :--- |
-| **Mã nguồn & Cấu hình** | Bundle mã nguồn sạch (`source.tar`, `SHA256SUMS`), `lab/compose.yaml`, `lab/compose.backup.yaml`, tệp biến môi trường `<DUONG_DAN_BACKUP_ENV>` | Giải nén vào thư mục làm việc mới của user UID/GID `1000`; kiểm tra khớp `SHA256SUMS` | Điều phối dịch vụ qua `scripts/backup_lab.py` |
-| **Kho sao lưu (Repository)** | Bản sao kho Restic sạch hoặc ảnh đĩa sao lưu `<DUONG_DAN_QCOW2_HOAC_GOI_KHO>` kèm tệp mã băm `<TEN_GOI>.sha256` | Gắn đĩa `vdb` (UUID `<EXPECTED_BACKUP_UUID>`, `ext4`, `rw`) tại `<MOUNT_POINT>` hoặc giải nén bản sao kho độc lập | Nguồn dữ liệu mã hóa để kiểm tra và khôi phục |
-| **Chứng chỉ TLS & CA** | `<LAB_TLS_DIR>/backup_ca` (`ca.crt`), `<LAB_TLS_DIR>/backup_server_cert` (`server.crt`), `<LAB_TLS_DIR>/backup_server_key` (`server.key`) | Thư mục chứa mode `0700`, tệp mode `0600`, chủ sở hữu UID/GID `1000`. Không bàn giao khóa riêng của CA (`ca.key`) vào runtime | Xác thực TLS 1.3 tới `rest:https://backup-server:8000/csattt/` |
-| **Bí mật xác thực (Secrets)** | `<SECRET_DIR>/repository_password`, `<SECRET_DIR>/rest_http_password`, `<SECRET_DIR>/rest_htpasswd` | Thư mục mode `0700`, tệp mode `0600`, chủ sở hữu UID/GID `1000` | Giải mã kho Restic và xác thực HTTP Basic |
-| **Container Images** | `restic/restic:0.19.1`, `restic/rest-server:0.14.0`, và image dịch vụ `workstation` (HTTP) | Nạp sẵn vào Docker daemon cục bộ trên VM sạch (phục vụ môi trường không Internet) | Chạy `backup-server`, `restore-worker` và HTTP `workstation` |
+| **Mã nguồn & cấu hình** | Bundle sạch (`source.tar`, `SHA256SUMS`) và manifest dữ liệu nền do người nghiệm thu xác nhận | Kiểm tra SHA-256, giải nén vào thư mục mới | Đối chiếu và phục vụ dữ liệu từ VM Recovery |
+| **Kho sao lưu** | Bản sao QCOW2 cùng SHA-256 đã xác nhận | Đính kèm ở chế độ chỉ đọc vào VM Recovery; xác minh serial và UUID ext4 trước khi mount | Nguồn Restic offline, không gắn vào VM sự cố |
+| **Tệp mật khẩu kho** | `<LAB_SECRET_DIR>/repository-password` | Thư mục `0700`, tệp `0600` thuộc UID `1000`; không in giá trị | Restic đọc qua `--password-file` |
+| **Chứng chỉ và xác thực HTTPS (chỉ cho luồng tùy chọn)** | `<LAB_TLS_DIR>/{ca.crt,server.crt,server.key}`; `<LAB_SECRET_DIR>/{rest-http-password,rest.htpasswd}` | Bàn giao ngoài Git, không chép `ca.key` vào runtime | Dùng với [runbook HTTPS](runbook-https-backup.md) trên bản sao làm việc được phép ghi |
+| **Container image** | `restic/restic:0.19.1`; image Workstation nếu dùng Compose; `restic/rest-server:0.14.0` chỉ cho HTTPS | Nạp sẵn, không pull trong VM cô lập | Không cần bật Internet hoặc backup-server để phục hồi offline |
 | **Căn cứ đối chiếu** | Full Snapshot ID (64 ký tự hex) và tệp manifest gốc `<DUONG_DAN_MANIFEST_LAB_CHINH>` | Lưu ngoài thư mục đích phục hồi; được @Unknown1805 xác nhận trước lượt chạy | Đối chiếu danh sách 15 tệp và mã băm SHA-256 |
 
 ---
