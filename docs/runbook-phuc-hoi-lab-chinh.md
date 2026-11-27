@@ -43,7 +43,7 @@ Toàn bộ bí mật, chứng chỉ, ảnh đĩa và container image không đư
 ## 3. Nguyên tắc Cô lập và Điều kiện Dừng Khẩn cấp (Stop Conditions)
 
 ### 3.1. Nguyên tắc cô lập sự cố
-1. **Không thao tác trên VM sự cố:** Toàn bộ quy trình khôi phục phải thực hiện trên **VM sạch mới khởi tạo** (Ubuntu VM chuẩn, UID/GID `1000`, mạng nội bộ `backup_net` cô lập, không publish cổng ra ngoài).
+1. **Không thao tác trên VM sự cố:** Khôi phục trên VM Recovery riêng, UID/GID 1000, không NIC ngoài/default route và không chia sẻ với VM sự cố. Restic offline dùng `--network none`; chỉ luồng HTTPS tùy chọn mới dùng `backup_net` nội bộ, không publish cổng ra ngoài.
 2. **Không mount kho backup vào VM sự cố:** Nghiêm cấm gắn đĩa `csattt-backup.qcow2` hoặc mount bản sao kho Restic vào máy ảo đang nghi nhiễm/gặp sự cố để tránh nguy cơ mã độc phá hủy hoặc mã hóa chéo bản sao lưu.
 3. **Bảo toàn hiện trường và chứng cứ:** Giữ nguyên trạng VM sự cố, bản kho nguồn, các thư mục log và thư mục phục hồi dở dang. **Cấm tuyệt đối** các lệnh phá hủy hoặc làm thay đổi cấu trúc kho:
    - Không chạy `rm -rf` lên dữ liệu phục hồi hoặc thư mục chứng cứ.
