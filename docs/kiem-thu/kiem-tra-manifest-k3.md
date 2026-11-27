@@ -64,7 +64,7 @@ $common  = @($expected.Keys | Where-Object { $actual.ContainsKey($_) } | Sort-Ob
 $matched = @()
 $mismatched = @()
 foreach ($rel in $common) {
-    $actualHash = (Get-FileHash -Path $actual[$rel] -Algorithm SHA256).Hash.ToLower()
+    $actualHash = (Get-FileHash -LiteralPath $actual[$rel] -Algorithm SHA256 -ErrorAction Stop).Hash.ToLower()
     if ($actualHash -eq $expected[$rel]) {
         $matched += $rel
     } else {
