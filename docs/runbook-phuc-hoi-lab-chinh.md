@@ -144,13 +144,11 @@ Nếu dùng Workstation thay cho HTTP loopback trên, cấu hình `LAB_DATA_DIR=
 
 Đối chiếu đủ 15 URL với manifest nền: mỗi URL phải trả đúng HTTP `200` và SHA-256 phần thân phản hồi phải khớp. Dừng khi thiếu URL, sai mã HTTP hoặc lệch SHA-256; chỉ sau khi đủ 15/15 mới ghi mốc UTC `HTTP_15/15`.
 
-### Bước 7: Dừng dịch vụ backup an toàn sau khi hoàn tất phục hồi
-Sau khi dữ liệu đã được nạp sang `workstation` và HTTP hoạt động ổn định:
-```bash
-python3 scripts/backup_lab.py --env-file <DUONG_DAN_BACKUP_ENV> stop
-python3 scripts/backup_lab.py --env-file <DUONG_DAN_BACKUP_ENV> status
-```
-Xác nhận không còn container `backup-worker` / `restore-worker` đang chạy trước khi tháo đĩa sao lưu (nếu cần).
+### Bước 7: Bảo toàn kết quả và bàn giao
+
+Luồng offline không bật `backup-server`. Xác minh kho đã unmount, lưu manifest, log và mốc UTC; giữ HTTP trên VM Recovery cho bước nghiệm thu. Không đặt log thô hoặc tệp xác thực trong Git.
+
+**Tùy chọn HTTPS:** nếu thực sự cần diễn tập kênh HTTPS, chỉ chạy [runbook HTTPS](runbook-https-backup.md) trên **bản sao làm việc riêng được phép ghi**; không remount bản sao chứng cứ sang `rw`. Tắt `backup-server` theo runbook sau khi hoàn tất. Ghi rõ luồng nào đã chạy.
 
 ---
 
