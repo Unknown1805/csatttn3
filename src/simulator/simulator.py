@@ -84,11 +84,12 @@ def rename_noreplace():
     return rename
 
 
-def simulate(path, apply=False):
+def simulate(path, apply=False, *, hold_after_three=False):
     run_id = 'sim33-' + datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ') + '-' + uuid.uuid4().hex[:8]
     changed = []
     mode = 'apply' if apply else 'dry-run'
-    log_event(run_id, 'start', mode=mode, simulation=True)
+    limits = {'hold_after_three': True} if hold_after_three else {}
+    log_event(run_id, 'start', mode=mode, simulation=True, **limits)
     try:
         with data_directory(path) as directory:
             signatures = inspect_samples(directory)
@@ -114,7 +115,8 @@ def simulate(path, apply=False):
                 os.fsync(stream.fileno())
             os.fsync(directory)
             log_event(run_id, 'simulation_note_created', path=NOTE)
-            for index, name in enumerate(NAMES):
+            steps = NAMES[:3] if hold_after_three else NAMES
+            for index, name in enumerate(steps):
                 if STOP_SIGNAL is not None:
                     log_event(run_id, 'stopped', signal=STOP_SIGNAL, renamed=changed)
                     return 128 + STOP_SIGNAL
@@ -128,8 +130,14 @@ def simulate(path, apply=False):
                 os.fsync(directory)
                 log_event(run_id, 'file_renamed', source=name, target=name + SUFFIX,
                           sha256=hashlib.sha256(expected_content(index + 1)).hexdigest())
-                if index < len(NAMES) - 1:
+                if index < len(steps) - 1:
                     time.sleep(1)
+            if hold_after_three:
+                # The fourth rename is not in this mode's execution path, even if Pause is late.
+                while STOP_SIGNAL is None:
+                    time.sleep(0.1)
+                log_event(run_id, 'stopped', signal=STOP_SIGNAL, renamed=changed)
+                return 128 + STOP_SIGNAL
             if set(os.listdir(directory)) != {n + SUFFIX for n in NAMES} | {NOTE}:
                 raise RuntimeError('Final directory entries differ from the planned result')
             for number, name in enumerate(NAMES, 1):
@@ -150,12 +158,16 @@ def request_stop(number, frame):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--apply', action='store_true', help='Apply to the approved synthetic dataset; default is dry-run')
+    parser.add_argument('--hold-after-three', action='store_true',
+                        help='With --apply, rename at most three synthetic files and wait for a stop signal')
     args = parser.parse_args()
+    if args.hold_after_three and not args.apply:
+        parser.error('--hold-after-three requires --apply')
     if os.geteuid() == 0:
         raise SystemExit('STOP: Run the simulator as the non-root container user.')
     signal.signal(signal.SIGINT, request_stop)
     signal.signal(signal.SIGTERM, request_stop)
-    return simulate(DATA_DIR, apply=args.apply)
+    return simulate(DATA_DIR, apply=args.apply, hold_after_three=args.hold_after_three)
 
 
 if __name__ == '__main__':

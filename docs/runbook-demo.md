@@ -102,6 +102,10 @@ Trong D2, log runtime thu lúc simulator Pause ghi 3 lần đổi tên; đĩa sa
 
 Phép thử ngày 12/11/2026 trong VM riêng `CSATTT-STOP-TEST` dùng Docker Engine 29.1.3 và 15 file giả. Sau Pause, người vận hành giữ VM chạy để ghi trạng thái, log và SHA-256. Bộ thử gửi SIGKILL tới đúng container đang Pause và xác nhận container thoát với mã 137. Số file đổi tên giữ nguyên ở cả ba mốc sau Pause, sau khi container thoát và sau shutdown (**3 → 3 → 3**). Đọc ổ ảo ở chế độ chỉ đọc xác nhận log Docker, manifest 7/7 và SHA-256 nội dung 15/15.
 
+Trong [lượt #40 ngày 27/11](kiem-thu/demo-tich-hop-40-20261127.md), Docker báo mã `137` nhưng kiểm kê cho kết quả **3 → 4 → 4**; log simulator vẫn chỉ ghi 3 lần đổi tên. Mã thoát và log riêng lẻ không chứng minh mốc dừng đạt. Chưa xác định nguyên nhân.
+
+Với lượt thử mới, dùng launcher đã kiểm tra đối số `--apply --hold-after-three` và đối chiếu `hold_after_three: true` trong sự kiện `start`. Giới hạn này chỉ bảo vệ tập dữ liệu giả; vẫn phải xác nhận Pause thật, kiểm kê tên và hash ở cả ba mốc. Nếu có sai lệch, bảo quản chứng cứ riêng và không coi đó là lượt đạt.
+
 Với một lượt mới, hoàn tất thu RAM, log và PCAP trước khi dừng. Trong Ubuntu, lấy ID đầy đủ của simulator từ biên bản đúng lượt. Kiểm tra ID thuộc project của lượt, service là simulator và trạng thái là Paused. Ghi danh sách tên cùng SHA-256 của bản sao thử trước khi chạy hai lệnh sau với `ID_SIM` là ID đã xác nhận.
 
 ```bash
