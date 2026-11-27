@@ -6,13 +6,15 @@ Trạng thái: đã nghiệm thu dry-run và apply trên bản sao thử trong V
 
 Simulator là container chạy một lần, dùng lại image Python `csatttn3/workstation:stage1` đang có. Nó chỉ nối `incident_net` internal, không publish cổng, không có Docker socket, secret hoặc backup. UID/GID 1000, root filesystem chỉ đọc, cap-drop ALL, no-new-privileges, giới hạn CPU/RAM/PID. Profile `incident` tách nó khỏi các lần up thông thường.
 
-Mặc định là **dry-run**. CLI chỉ có `--apply`, không có lựa chọn quét đường dẫn tùy ý. Bên trong container đường dữ liệu cố định `/lab/data`; người vận hành chọn đúng bind mount đã duyệt.
+Mặc định là **dry-run**. `--apply` chạy S1 như trước. Chỉ khi kết hợp `--apply --hold-after-three`, chế độ diễn tập #40 mới giới hạn ở ba lần đổi tên rồi chờ tín hiệu dừng. Không có lựa chọn quét đường dẫn tùy ý. Bên trong container đường dữ liệu cố định `/lab/data`; người vận hành chọn đúng bind mount đã duyệt.
 
 Chỉ chấp nhận đúng 15 tên `file_01.txt` đến `file_15.txt`, nội dung 40 B/file khớp dữ liệu giả của Workstation. Directory/file symlink, hardlink, thư mục con, file thiếu/thừa, nội dung sai hoặc tên đích tồn tại đều bị từ chối trong preflight. Đọc có giới hạn kích thước và không theo symlink. Giữ directory descriptor và khóa flock trong lượt chạy.
 
 Apply tạo `SIMULATION_NOTE.txt` với nhãn SAFE SIMULATION, rồi đổi từng tên thành `.simlocked`, cách nhau khoảng một giây. Nội dung không được mã hóa hoặc xóa. Đổi tên dùng `renameat2(RENAME_NOREPLACE)` của Linux để từ chối ghi đè cả khi tên đích xuất hiện sau kiểm tra. Phạm vi hệ điều hành là Linux/glibc và filesystem hỗ trợ cờ này; VM hiện dùng ext4.
 
 Log JSON ra stdout có run ID, PID, UTC, kế hoạch và từng thao tác. SIGINT/SIGTERM yêu cầu dừng ở ranh giới bước; lượt đang dở được giữ nguyên, không tự rollback hoặc chạy lại. SIGKILL/mất điện không bảo đảm có bản ghi kết thúc. Khóa flock chỉ điều phối tiến trình hợp tác; môi trường thử phải có duy nhất simulator ghi tập dữ liệu. Đây không phải cơ chế bảo vệ trước root guest độc hại.
+
+`--hold-after-three` là giới hạn của bài mô phỏng: simulator báo tùy chọn này trong sự kiện `start` và không có bước đổi tên thứ tư. Chờ tín hiệu không thay cho xác nhận trạng thái Docker `Paused` hay kiểm kê tệp; xem [runbook demo](runbook-demo.md#7-dừng-simulator-và-kiểm-tra-sau-shutdown).
 
 ## 2. Kiểm tra nguồn trên Kali
 

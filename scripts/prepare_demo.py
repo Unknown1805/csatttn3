@@ -1,4 +1,5 @@
 """Prepare an independent D1 dataset and Compose project; start no containers."""
+import argparse
 from datetime import datetime, timezone
 import hashlib
 import json
@@ -19,14 +20,17 @@ VM_UUID = 'bd0eab21-9089-4489-a703-b7771e210d5e'
 BACKUP_UUID = '72fd2516-3134-4ff1-abcd-50369a6db1b9'
 
 
-def guest_preflight(lab):
+def guest_preflight(lab, expected_vm_uuid=VM_UUID):
+    expected_vm_uuid = expected_vm_uuid.lower()
+    if not re.fullmatch(r'[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}', expected_vm_uuid):
+        raise RuntimeError('Expected a full VM UUID in hyphenated form.')
     ensure_vm()
     if socket.gethostname() != 'csattt3' or Path.home() != Path('/home/csattt3'):
         raise RuntimeError('Run as csattt3 inside the approved Ubuntu VM.')
     actual = subprocess.check_output(
         ['sudo', 'cat', '/sys/class/dmi/id/product_uuid'], text=True, timeout=30
     ).strip().lower()
-    if actual != VM_UUID:
+    if actual != expected_vm_uuid:
         raise RuntimeError('Wrong VM UUID.')
     if any((p / 'device').exists() for p in Path('/sys/class/net').iterdir()):
         raise RuntimeError('VM still has a hardware network interface.')
@@ -101,8 +105,12 @@ def prepare(data, probe, bundle, commit):
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--vm-uuid', default=VM_UUID,
+                        help='Expected UUID of the approved incident VM (default: original D1 VM).')
+    args = parser.parse_args()
     lab = Path.home() / 'csattt-lab'
-    guest_preflight(lab)
+    guest_preflight(lab, args.vm_uuid)
     commit = (ROOT.parent / 'COMMIT.txt').read_text().strip()
     result = prepare(lab / 'runtime/sample_data', lab / 'runtime/fim-probe', ROOT.parent, commit)
     print('D1 PREP: OK — original 15/15 unchanged; new copy 15/15.')

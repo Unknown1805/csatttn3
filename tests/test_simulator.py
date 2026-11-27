@@ -136,6 +136,28 @@ class Simulator(unittest.TestCase):
         self.assertTrue(all((self.data / n).is_file() for n in sim.NAMES[1:]))
         self.assertEqual(json.loads(self.output.getvalue().splitlines()[-1])['event'], 'stopped')
 
+    def test_hold_after_three_has_no_fourth_rename_even_without_pause(self):
+        before = {p.name: p.read_bytes() for p in self.data.iterdir()}
+        expected = {n + (sim.SUFFIX if i < 3 else ''): before[n] for i, n in enumerate(sim.NAMES)}
+        holds = []
+
+        def observe_wait(seconds):
+            if seconds == 1:
+                return
+            self.assertEqual({p.name: p.read_bytes() for p in self.data.iterdir() if p.name != sim.NOTE}, expected)
+            holds.append(seconds)
+            if len(holds) == 3:
+                sim.request_stop(signal.SIGTERM, None)
+
+        with patch.object(sim.time, 'sleep', side_effect=observe_wait):
+            self.assertEqual(sim.simulate(self.data, apply=True, hold_after_three=True), 143)
+        self.assertEqual(len(holds), 3)
+        self.assertEqual({p.name: p.read_bytes() for p in self.data.iterdir() if p.name != sim.NOTE}, expected)
+        events = [json.loads(line) for line in self.output.getvalue().splitlines()]
+        self.assertIs(events[0]['hold_after_three'], True)
+        self.assertEqual([e['source'] for e in events if e['event'] == 'file_renamed'], list(sim.NAMES[:3]))
+        self.assertEqual(events[-1]['event'], 'stopped')
+
     def test_change_mid_run_stops_before_renaming_the_changed_file(self):
         def change_source(seconds):
             (self.data / sim.NAMES[1]).write_bytes(b'X' * len(sim.expected_content(2)))
@@ -173,18 +195,31 @@ class Simulator(unittest.TestCase):
         with patch.object(sys, 'argv', ['simulator.py']), patch.object(sim.os, 'geteuid', return_value=1000), \
                 patch.object(sim.signal, 'signal'), patch.object(sim, 'simulate', return_value=0) as run:
             self.assertEqual(sim.main(), 0)
-        run.assert_called_once_with(Path('/lab/data'), apply=False)
+        run.assert_called_once_with(Path('/lab/data'), apply=False, hold_after_three=False)
 
     def test_cli_apply_is_explicit_and_root_is_refused(self):
         with patch.object(sys, 'argv', ['simulator.py', '--apply']), patch.object(sim.os, 'geteuid', return_value=1000), \
                 patch.object(sim.signal, 'signal'), patch.object(sim, 'simulate', return_value=0) as run:
             self.assertEqual(sim.main(), 0)
-        run.assert_called_once_with(Path('/lab/data'), apply=True)
+        run.assert_called_once_with(Path('/lab/data'), apply=True, hold_after_three=False)
         with patch.object(sys, 'argv', ['simulator.py', '--apply']), patch.object(sim.os, 'geteuid', return_value=0), \
                 patch.object(sim, 'simulate') as run:
             with self.assertRaisesRegex(SystemExit, 'non-root'):
                 sim.main()
         run.assert_not_called()
+
+    def test_cli_hold_after_three_requires_apply(self):
+        with patch.object(sys, 'argv', ['simulator.py', '--hold-after-three']), \
+                patch.object(sys, 'stderr', new=io.StringIO()), patch.object(sim, 'simulate') as run:
+            with self.assertRaises(SystemExit) as caught:
+                sim.main()
+            self.assertEqual(caught.exception.code, 2)
+        run.assert_not_called()
+        with patch.object(sys, 'argv', ['simulator.py', '--apply', '--hold-after-three']), \
+                patch.object(sim.os, 'geteuid', return_value=1000), patch.object(sim.signal, 'signal'), \
+                patch.object(sim, 'simulate', return_value=0) as run:
+            self.assertEqual(sim.main(), 0)
+        run.assert_called_once_with(Path('/lab/data'), apply=True, hold_after_three=True)
 
 
 class SimulatorCompose(unittest.TestCase):
