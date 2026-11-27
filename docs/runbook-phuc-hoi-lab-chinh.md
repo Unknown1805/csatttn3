@@ -71,49 +71,57 @@ Người vận hành phải dừng quy trình ngay lập tức và báo cáo l�
    ```
    *Yêu cầu:* Tất cả các dòng trả về trạng thái `OK`.
 
-### Bước 2: Gắn lưu trữ sao lưu và kiểm tra tiền điều kiện (`preflight`)
-1. Trên hypervisor (Kali), xác nhận VM sạch chưa gắn `vdb` và gắn đúng tệp `<DUONG_DAN_QCOW2_HOAC_BAN_SAO_KHO>`.
-2. Bên trong Ubuntu VM sạch (user UID `1000`), xác minh UUID phân vùng và mount vào `<MOUNT_POINT>` (ví dụ `/mnt/csattt-backup`):
-   ```bash
-   lsblk -f
-   sudo mount -o rw UUID=<EXPECTED_BACKUP_UUID> <MOUNT_POINT>
-   ```
-3. Kiểm tra cấu hình tệp `<DUONG_DAN_BACKUP_ENV>` đảm bảo:
-   - `LAB_TLS_DIR` trỏ đúng thư mục chứa bộ TLS hợp lệ (`0700`/`0600`).
-   - `LAB_RESTORE_DIR` là đường dẫn **mới hoàn toàn** (chưa có dữ liệu). Tạo thư mục rỗng thuộc UID `1000`:
-     ```bash
-     mkdir -p "<LAB_RESTORE_DIR>"
-     chmod 0700 "<LAB_RESTORE_DIR>"
-     ```
-4. Chạy kiểm tra tiền điều kiện bằng helper chính thức:
-   ```bash
-   python3 scripts/backup_lab.py --env-file <DUONG_DAN_BACKUP_ENV> preflight
-   ```
-   *Yêu cầu:* Trả về `PREFLIGHT: OK` và exit code `0`.
+### Bước 2: Gắn bản sao kho chỉ đọc và xác minh định danh
 
-### Bước 3: Khởi động `backup-server` (HTTPS) và kiểm tra toàn vẹn kho
-1. Khởi động dịch vụ `backup-server` qua TLS 1.3:
-   ```bash
-   python3 scripts/backup_lab.py --env-file <DUONG_DAN_BACKUP_ENV> start
-   python3 scripts/backup_lab.py --env-file <DUONG_DAN_BACKUP_ENV> status
-   ```
-2. Kiểm tra toàn bộ cấu trúc và dữ liệu mã hóa của kho thông qua `backup-worker`:
-   ```bash
-   python3 scripts/backup_lab.py --env-file <DUONG_DAN_BACKUP_ENV> client check --read-data
-   ```
-3. Liệt kê snapshot và đối chiếu chính xác từng ký tự của **Full Snapshot ID (64 ký tự hex)** với thông tin do @Unknown1805 xác nhận:
-   ```bash
-   python3 scripts/backup_lab.py --env-file <DUONG_DAN_BACKUP_ENV> client snapshots
-   ```
+Trên hypervisor, giữ VM sự cố tắt; chỉ gắn bản sao đã đối chiếu SHA-256 vào VM Recovery với cờ chỉ đọc và serial đã được bàn giao. Xác nhận Recovery không có NIC ngoài, chia sẻ thư mục hoặc clipboard. Bên trong Ubuntu, đặt `BACKUP_UUID`, `BACKUP_SERIAL`, `SNAPSHOT`, `PASSWORD_FILE` và `RUN_ROOT` theo bàn giao; `RUN_ROOT` là thư mục ghi được của UID 1000, nằm ngoài kho và nguồn.
 
-### Bước 4: Thực thi khôi phục vào thư mục đích mới (`restic restore`)
-Ghi nhận riêng mốc thời gian bắt đầu và kết thúc của lệnh khôi phục (sử dụng đồng hồ đơn điệu `time.perf_counter()` hoặc `CLOCK_MONOTONIC`) để bóc tách thời lượng thực thi lệnh `restore`:
+~~~bash
+set -euo pipefail
+umask 077
+device=$(readlink -e "/dev/disk/by-uuid/${BACKUP_UUID:?}")
+test -b "$device"
+test "$(lsblk -dnro RO,SERIAL,UUID,FSTYPE "$device")" = "1 ${BACKUP_SERIAL:?} $BACKUP_UUID ext4"
+test -z "$(findmnt -rn -S "$device")"
+[[ ${SNAPSHOT:?} =~ ^[0-9a-f]{64}$ ]]
+test -f "${PASSWORD_FILE:?}" && test ! -L "$PASSWORD_FILE" && test -r "$PASSWORD_FILE"
+OUT=$(mktemp -d "${RUN_ROOT:?}/recovery-XXXXXX")
+MOUNT_POINT="$OUT/repo-mount"
+RESTORE_DIR="$OUT/restored"
+mkdir -- "$MOUNT_POINT" "$RESTORE_DIR"
+trap 'if mountpoint -q "$MOUNT_POINT"; then sudo umount "$MOUNT_POINT"; fi' EXIT
+sudo mount -t ext4 -o ro,noload,nodev,nosuid,noexec "$device" "$MOUNT_POINT"
+test "$(findmnt -nro MAJ:MIN -M "$MOUNT_POINT")" = "$(lsblk -dnro MAJ:MIN "$device")"
+findmnt -nro OPTIONS -M "$MOUNT_POINT" | grep -Eq '(^|,)ro(,|$)'
+test -f "$MOUNT_POINT/repository/csattt/config"
+~~~
 
-```bash
-python3 scripts/backup_lab.py --env-file <DUONG_DAN_BACKUP_ENV> restore <FULL_64_CHAR_SNAPSHOT_ID>
-```
+### Bước 3: Kiểm tra kho và snapshot bằng Restic offline
 
-> **Lưu ý:** Helper `backup_lab.py` sẽ tự động kiểm tra thư mục đích `/restore` (tương ứng `<LAB_RESTORE_DIR>`) phải rỗng, không phải symlink và không chồng lấn với dữ liệu nguồn hoặc kho backup trước khi chạy `restore-worker`.
+~~~bash
+restic_offline() {
+  sudo docker --host unix:///var/run/docker.sock run --rm --pull=never \
+    --network none --user 1000:1000 --read-only --cap-drop ALL \
+    --security-opt no-new-privileges:true \
+    --mount "type=bind,src=$MOUNT_POINT/repository/csattt,dst=/repo,readonly" \
+    --mount "type=bind,src=$PASSWORD_FILE,dst=/password,readonly" \
+    --mount "type=bind,src=$RESTORE_DIR,dst=/restore" \
+    restic/restic:0.19.1 --no-lock --no-cache -r /repo --password-file /password "$@"
+}
+restic_offline check --read-data
+restic_offline cat snapshot "$SNAPSHOT" > "$OUT/snapshot.json"
+~~~
+
+### Bước 4: Phục hồi vào đích mới
+
+~~~bash
+date -u +'%Y-%m-%dT%H:%M:%S.%NZ' > "$OUT/restore-start.utc"
+TIMEFORMAT='RESTORE_COMMAND_SECONDS=%R'
+{ time restic_offline restore "$SNAPSHOT" --target /restore --include '/source/file_*.txt' --verify > "$OUT/restore.log" 2>&1; } 2> "$OUT/restore-time.txt"
+date -u +'%Y-%m-%dT%H:%M:%S.%NZ' > "$OUT/restore-end.utc"
+sudo umount "$MOUNT_POINT"
+~~~
+
+Chạy các khối bước 2–4 trong cùng một Bash để giữ biến và hàm. Giữ lại dữ liệu đang dở nếu gặp lỗi. Bước tiếp theo chỉ đọc các tệp vừa phục hồi ở `$RESTORE_DIR/source`. Thời lượng riêng của lệnh không phải RTO.
 
 ### Bước 5: Xác minh dữ liệu sau khôi phục (15/15 tệp và SHA-256)
 Di chuyển tới thư mục dữ liệu đã khôi phục bên trong `<LAB_RESTORE_DIR>` và thực hiện kiểm tra 2 lớp:
