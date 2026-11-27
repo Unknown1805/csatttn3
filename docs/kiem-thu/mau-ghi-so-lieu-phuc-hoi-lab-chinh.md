@@ -48,7 +48,7 @@
 | **Kiểm tra kho (`check --read-data`)** | Exit code `0`, `no errors were found` | `<CHUA_THUC_HIEN>` | Chưa thực hiện |
 | **Số lượng & kích thước tệp restore** | Đúng `15` tệp, tổng `600 B`, không tệp rác/ẩn lạ | `<CHUA_THUC_HIEN>` | Chưa thực hiện |
 | **Đối chiếu SHA-256 dữ liệu phục hồi** | `15/15` tệp khớp manifest của lab chính | `<CHUA_THUC_HIEN>` | Chưa thực hiện |
-| **Khởi động dịch vụ HTTP (`workstation`)** | Container chạy ổn định trên VM sạch | `<CHUA_THUC_HIEN>` | Chưa thực hiện |
+| **Khởi động HTTP** | Dịch vụ được chọn phục vụ đúng thư mục đã phục hồi; ghi rõ HTTP loopback hay Workstation/Compose | `<CHUA_THUC_HIEN>` | Chưa thực hiện |
 | **Kiểm tra truy cập HTTP 15/15** | `15/15` tệp trả HTTP `200` và khớp SHA-256 qua HTTP | `<CHUA_THUC_HIEN>` | Chưa thực hiện |
 | **Bảo toàn nguồn & chứng cứ** | Kho gốc, VM sự cố và log được giữ nguyên vẹn | `<CHUA_THUC_HIEN>` | Chưa thực hiện |
 
