@@ -134,28 +134,15 @@ Di chuyển tới thư mục dữ liệu đã khôi phục bên trong `<LAB_REST
 ### Bước 6: Nạp dữ liệu sạch và Khởi động dịch vụ HTTP
 Chỉ thực hiện bước này sau khi Bước 5 đạt **15/15 OK**:
 
-1. Nạp 15 tệp đã xác minh từ `<DUONG_DAN_DU_LIEU_SAU_RESTORE>` vào thư mục dữ liệu sạch của dịch vụ HTTP (`<WORKSTATION_HTTP_DATA_DIR>`, thư mục rỗng mới tạo trên VM sạch).
-2. Khởi động dịch vụ HTTP (`workstation`) trong môi trường sạch:
-   ```bash
-   sudo docker --host unix:///var/run/docker.sock compose \
-     --env-file <DUONG_DAN_BACKUP_ENV> \
-     -f lab/compose.yaml \
-     -f lab/compose.backup.yaml \
-     up -d --no-deps workstation
-   ```
-3. Kiểm tra phục hồi HTTP đủ **15/15 tệp** (trả về HTTP `200 OK` và mã băm nội dung tải qua HTTP khớp 15/15 với manifest):
-   ```bash
-   # Kiểm tra phản hồi HTTP status 200 và đối chiếu SHA-256 từng tệp qua giao thức HTTP
-   while read -r expected_hash filename; do
-     actual_hash=$(curl -fsS "http://<WORKSTATION_HTTP_HOST>:<HTTP_PORT>/${filename}" | sha256sum | awk '{print $1}')
-     if [ "$actual_hash" != "$expected_hash" ]; then
-       echo "FAIL: ${filename} (HTTP hash mismatch)"
-       exit 1
-     fi
-     echo "HTTP 200 & HASH OK: ${filename}"
-   done < "<DUONG_DAN_MANIFEST_LAB_CHINH>"
-   ```
-4. Ghi nhận mốc thời gian hoàn tất phục hồi HTTP 15/15 (UTC và đồng hồ đơn điệu).
+Đặt `RESTORED_DIR` thành đường dẫn tuyệt đối của thư mục vừa qua bước đối chiếu 15/15. Chạy HTTP từ chính thư mục đó, không chép sang thư mục dữ liệu nền. Ví dụ cho diễn tập offline, chạy trên terminal khác trong VM Recovery:
+
+~~~bash
+python3 -m http.server 18040 --bind 127.0.0.1 --directory "${RESTORED_DIR:?}"
+~~~
+
+Nếu dùng Workstation thay cho HTTP loopback trên, cấu hình `LAB_DATA_DIR=$RESTORED_DIR` trong tệp env dành riêng cho Workstation, kiểm tra bind mount thực tế trỏ đúng thư mục, rồi chạy `docker compose up -d --no-deps workstation` với tệp env đó. Không tái dùng env trỏ vào `sample_data`.
+
+Đối chiếu đủ 15 URL với manifest nền: mỗi URL phải trả đúng HTTP `200` và SHA-256 phần thân phản hồi phải khớp. Dừng khi thiếu URL, sai mã HTTP hoặc lệch SHA-256; chỉ sau khi đủ 15/15 mới ghi mốc UTC `HTTP_15/15`.
 
 ### Bước 7: Dừng dịch vụ backup an toàn sau khi hoàn tất phục hồi
 Sau khi dữ liệu đã được nạp sang `workstation` và HTTP hoạt động ổn định:
