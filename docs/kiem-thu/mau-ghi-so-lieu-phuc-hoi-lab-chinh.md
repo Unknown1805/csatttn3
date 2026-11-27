@@ -30,13 +30,13 @@
 
 | STT | Mốc sự kiện / Công đoạn | Thời điểm thực tế (UTC) | Mốc đơn điệu (`perf_counter` / `CLOCK_MONOTONIC`) | Thời lượng công đoạn (giây) | Ghi chú kỹ thuật |
 | :-: | :--- | :--- | :--- | :--- | :--- |
-| 1 | **Mốc xảy ra sự cố quy ước ($T_{\text{incident}}$)** | `<CHUA_THUC_HIEN>` | *Không áp dụng* | *Mốc tham chiếu* | Do kịch bản sự cố quy định |
-| 2 | **Bắt đầu ứng cứu ($T_{\text{start}}$)** | `<CHUA_THUC_HIEN>` | `<CHUA_THUC_HIEN>` | `0.0000` | Bắt đầu quy trình trên VM sạch |
-| 3 | **Hoàn tất `preflight` & `check --read-data`** | `<CHUA_THUC_HIEN>` | `<CHUA_THUC_HIEN>` | `<CHUA_THUC_HIEN>` | Xác minh UUID, TLS 1.3, toàn vẹn kho |
-| 4 | **Bắt đầu lệnh `restic restore` ($T_{\text{restore\_start}}$)** | `<CHUA_THUC_HIEN>` | `<CHUA_THUC_HIEN>` | *Mốc đo riêng* | Bắt đầu chạy `restore-worker` |
-| 5 | **Kết thúc lệnh `restic restore` ($T_{\text{restore\_end}}$)** | `<CHUA_THUC_HIEN>` | `<CHUA_THUC_HIEN>` | **`<THOI_LUONG_RESTORE_RIENG>`** | **Thời gian lệnh `restore` ghi riêng** |
-| 6 | **Hoàn tất xác minh dữ liệu 15/15 (SHA-256)** | `<CHUA_THUC_HIEN>` | `<CHUA_THUC_HIEN>` | `<CHUA_THUC_HIEN>` | Khớp 15 tệp / 600 B với manifest |
-| 7 | **HTTP phục hồi hoạt động 15/15 ($T_{\text{HTTP\_15/15}}$)** | `<CHUA_THUC_HIEN>` | `<CHUA_THUC_HIEN>` | `<CHUA_THUC_HIEN>` | `workstation` trả HTTP 200 & khớp hash 15/15 |
+| 1 | **Mốc sự cố quy ước** | `<CHUA_THUC_HIEN>` | Không áp dụng | Mốc tham chiếu | Theo kịch bản; ghi tên mốc và nguồn |
+| 2 | **Bắt đầu ứng cứu** | `<CHUA_THUC_HIEN>` | `<CHUA_THUC_HIEN>` | Mốc bắt đầu | Bắt đầu xử lý trên VM sạch |
+| 3 | **Xác minh kho và snapshot** | `<CHUA_THUC_HIEN>` | `<CHUA_THUC_HIEN>` | `<CHUA_THUC_HIEN>` | Serial, UUID, mount chỉ đọc, `check --read-data`; thêm TLS nếu dùng HTTPS |
+| 4 | **Bắt đầu lệnh `restic restore`** | `<CHUA_THUC_HIEN>` | `<CHUA_THUC_HIEN>` | Mốc đo riêng | Ghi luồng offline hoặc HTTPS |
+| 5 | **Kết thúc lệnh `restic restore`** | `<CHUA_THUC_HIEN>` | `<CHUA_THUC_HIEN>` | `<THOI_LUONG_RESTORE_RIENG>` | Không phải RTO |
+| 6 | **Hoàn tất đối chiếu SHA-256 15/15** | `<CHUA_THUC_HIEN>` | `<CHUA_THUC_HIEN>` | `<CHUA_THUC_HIEN>` | Khớp 15 tệp / 600 B với manifest |
+| 7 | **HTTP 15/15** | `<CHUA_THUC_HIEN>` | `<CHUA_THUC_HIEN>` | `<CHUA_THUC_HIEN>` | HTTP 200 và hash 15/15 từ đúng thư mục đã phục hồi |
 
 ---
 
